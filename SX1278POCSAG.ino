@@ -17,7 +17,7 @@ void setup() {
   //modem.setFrequency(433.33);
   modem.setBitrate(1.2);
   modem.setShift(4.5);
-  modem.setRxBandwidth(3);
+  modem.setRxBandwidth(17);
   modem.setAfcBandwidth(10);
   modem.setModeFskRxCont();
   modem.initDioIf();
