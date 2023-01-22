@@ -13,7 +13,7 @@ void setup() {
   modem.initChip();
   modem.printChip();
   timerRSSI=millis()+1000;
-  modem.setFrequency(439.9989);
+  modem.setFrequency(439.995);
   //modem.setFrequency(433.33);
   modem.setBitrate(1.2);
   modem.setShift(4.5);

@@ -182,28 +182,25 @@ class SX1278FSK {
     void restartRx(bool withPLL) {
       if (!withPLL) { setReg(regRxCfg,6,6,1); }
       else { setReg(regRxCfg,5,5,1); } }
-      //setReg(regIrqFlags1,3,3,1); } // Clear RSSI Interrupt Flag
 
-    int32_t getAFC() {
+    double getAFC() {
       uint8_t valueMSB=readSPI(regAfcMSB);
       uint8_t valueLSB=readSPI(regAfcLSB);
-      uint32_t value=(valueMSB<<8)|valueLSB;
-      if (value>0x7fff) { return (int32_t)(value-0x10000); }
-      else { return (int32_t)value; } }
+      int16_t value=(valueMSB<<8)|valueLSB;
+      return (double)value/16.384; }
 
-    int32_t getFEI() {
+    double getFEI() {
       uint8_t valueMSB=readSPI(regFeiMSB);
       uint8_t valueLSB=readSPI(regFeiLSB);
-      uint32_t value=(valueMSB<<8)|valueLSB;
-      if (value>0x7fff) { return (int32_t)(value-0x10000); }
-      else { return (int32_t)value; } }
+      int16_t value=(valueMSB<<8)|valueLSB;
+      return (double)value/16.384; }
 
-    int getGain() { int gain[8]=gainValue; return gain[getReg(regRxLna,7,5)]; }
+    double getGain() { double gain[8]=gainValue; return gain[getReg(regRxLna,7,5)]; }
 
     void setRssiTresh(int value) {
       writeSPI(regRssiTresh,(uint8_t)(value*-2)); }
 
-    int getRSSI() { return round(readSPI(regRssi)/2)*-1; }
+    double getRSSI() { return readSPI(regRssi)/-2.0; }
 
     uint8_t searchSync(uint8_t rxByte) {
       static uint32_t syncBuffer;
@@ -218,12 +215,13 @@ class SX1278FSK {
       if (count%2) { return false; } else { return true; } }
 
     void printChip() {
-      Serial.print("SX1278 Chip Version: "); Serial.println(readSPI(regChipVersion),HEX); }
+      Serial.print("SX1278 Chip Version: "); Serial.print(getReg(regChipVersion,7,4),DEC);
+      Serial.print(" Hardware Revision: "); Serial.println(getReg(regChipVersion,3,0),DEC); }
 
     void printRx() {
-      Serial.print("RSSI: "); Serial.print(getRSSI());
-      Serial.print("   AFC: "); Serial.print(getAFC());
-      Serial.print("   FEI: "); Serial.print(getFEI());
-      Serial.print("   Gain: "); Serial.println(getGain()); } };
+      Serial.print("RSSI: "); Serial.print(getRSSI(),1); Serial.print(" dBm");
+      Serial.print("   Gain: "); Serial.print(getGain(),1); Serial.print(" dBm");
+      Serial.print("   AFC: "); Serial.print(getAFC(),3); Serial.print(" kHz");
+      Serial.print("   FEI: "); Serial.print(getFEI(),3); Serial.println(" kHz"); } };
 
 #endif
