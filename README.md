@@ -21,6 +21,16 @@ SX1278 and ESP32 based POCSAG receiver
 ![IMAGE ALT TEXT HERE](https://www.dorstel.de/github/SX1278POCSAG_a_v1.0.png)
 #### Console Screenshot (DAPNET DB0HBO)
 ![IMAGE ALT TEXT HERE](https://www.dorstel.de/github/SX1278POCSAG_b_v1.0.png)
+#### Receiver Configuration
+* center frequency in MHz
+* bitrate in kbps
+* frequency shift in kHz
+* Rx bandwidth as index (selected from table in SX1278.h)
+  * this means the single sided bandwidth
+  * calculated with the formula RXbandwidth >= Fshift+(bitrate/2)
+* AFC bandwidth as index (selected from table in SX1278.h)
+  * calculated with the formula AFCbandwidth >= 2*(Fshift+(bitrate/2))+Ferror
+  * Ferror means the maximum center frequency offset error of the SX1278 module
 #### define statements for the SX1278 based HELTEC LoRa module
     // SX1278.h
     #define SCK 5
