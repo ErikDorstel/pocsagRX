@@ -1,9 +1,6 @@
 #include "SX1278.h"
 
-SX1278FSK modem;
-
-bool monitorRx=false;
-uint8_t debug=0;
+SX1278FSK modem(false,0);
 
 void setup() {
   Serial.begin(115200);
@@ -22,10 +19,10 @@ void loop() {
 
   if (millis()>=modem.timerRx) { modem.timerRx=millis()+1000;
     modem.restartRx(false);
-    if (monitorRx) { modem.printRx(); } }
+    if (modem.monitorRx) { modem.printRx(); } }
 
   if (detectDIO0Flag) { detectDIO0Flag=false;
-    if (debug) { Serial.println("Preamble Detected!"); }
+    if (modem.debug) { Serial.println("Preamble Detected!"); }
     modem.printRx(); modem.timerRx=millis()+1000; }
 
   if (modem.available()) {
@@ -34,7 +31,7 @@ void loop() {
 
     if (bitShift!=255) {
       modem.timerRx=millis()+1000;
-      if (debug) { Serial.print("Frame Sync Detected! Bit Shift: "); Serial.println(bitShift); }
+      if (modem.debug) { Serial.print("Frame Sync Detected! Bit Shift: "); Serial.println(bitShift); }
       uint32_t batch[16]={0};
 
       for (uint8_t idx=0;idx<=63;idx++) {
@@ -51,7 +48,7 @@ void loop() {
 
         if (modem.checkParity(batch[idx])) { parity=true; } else { parity=false; }
 
-        if (debug>1) {
+        if (modem.debug>1) {
           Serial.println();
           if (isIdle) { Serial.print("Idle "); }
           if (isAddress) { Serial.print("Address "); } else { Serial.print("Message "); }

@@ -61,9 +61,11 @@ uint8_t bcdCode[16]={0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x2a,0x55
 class SX1278FSK {
   public:
 
-    SX1278FSK() {}
-
     uint32_t timerRx;
+    bool monitorRx=false;
+    uint8_t debug=0;
+
+    SX1278FSK(bool monitorRx=false, uint8_t debug=0) {}
 
     uint8_t readSPI(uint8_t addr) {
       digitalWrite(CS, LOW);
