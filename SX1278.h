@@ -60,7 +60,6 @@ uint8_t bcdCode[16]={0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x2a,0x55
 
 class SX1278FSK {
   public:
-    uint32_t timerRx;
     bool monitorRx;
     uint8_t debug;
     bool forceText;
@@ -250,6 +249,87 @@ class SX1278FSK {
         case 0x7c: Serial.print("\u00f6"); break;
         case 0x7d: Serial.print("\u00fc"); break;
         case 0x7e: Serial.print("\u00df"); break;
-        default: Serial.write(code); } } };
+        default: Serial.write(code); } }
+
+    void decodePOCSAG() {
+      if (millis()>=timerRx) { timerRx=millis()+1000;
+        restartRx(false);
+        if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
+
+      if (detectDIO0Flag) { detectDIO0Flag=false;
+        if (needCR) { needCR=false; Serial.println(); }
+        if (debug) { Serial.println("Preamble Detected!"); }
+        printRx(); timerRx=millis()+1000; }
+
+      if (available()) {
+        uint8_t rxByte=read();
+        uint8_t bitShift=searchSync(rxByte);
+
+        if (bitShift!=255) {
+          timerRx=millis()+1000;
+          if (debug) {
+            if (needCR) { needCR=false; Serial.println(); }
+            Serial.print("Frame Sync Detected! Bit Shift: "); Serial.println(bitShift); }
+          uint32_t batch[16]={0};
+
+          for (uint8_t idx=0;idx<=63;idx++) {
+            uint8_t codeWord=idx>>2;
+            batch[codeWord]<<=bitShift; batch[codeWord]|=rxByte&((1<<bitShift)-1);
+            while (!available()) {} rxByte=read();
+            batch[codeWord]<<=8-bitShift; batch[codeWord]|=rxByte>>bitShift;
+            if (idx==63 && bitShift!=0) { searchSync(rxByte); } }
+
+          for (uint8_t idx=0;idx<=15;idx++) {
+            if (batch[idx]==0x7a89c197) { isIdle=true; } else { isIdle=false; }
+
+            if (!(batch[idx]&(1<<31))) { isAddress=true; } else { isAddress=false; }
+
+            if (checkParity(batch[idx])) { parity=true; } else { parity=false; }
+
+            if (debug>1) {
+              if (needCR) { needCR=false; Serial.println(); }
+              if (isIdle) { Serial.print("Idle "); }
+              if (isAddress) { Serial.print("Address "); } else { Serial.print("Message "); }
+              Serial.print(batch[idx],BIN);
+              if (parity) { Serial.println(" Parity Ok"); } else { Serial.println(" Parity Failed"); } }
+
+            if ((!isIdle) && isAddress) {
+              if (needCR) { needCR=false; Serial.println(); }
+              ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
+              Serial.print("  RIC: "); Serial.println(ric,DEC);
+              function=(batch[idx]&0x1800)>>11;
+                switch(function) {
+                  case 0: Serial.println("    Message Type: Numeric"); Serial.print("    "); break;
+                  case 1: Serial.println("    Message Type: 1"); Serial.print("    "); break;
+                  case 2: Serial.println("    Message Type: 2"); Serial.print("    "); break;
+                  default: Serial.println("    Message Type: Text"); Serial.print("    "); }
+              if (forceText) { function=3; } }
+
+            if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
+
+            if ((!isAddress) && (function==3)) {
+              needCR=true;
+              for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
+                text>>=1; text|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
+                textPos++; if (textPos>=7) { text>>=1; consoleDE(text); text=0; textPos=0; } } }
+
+            if ((!isAddress) && (function==0)) {
+              needCR=true;
+              for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
+                number<<=1; number|=(batch[idx]&(1<<bitPos))>>bitPos;
+                numberPos++; if (numberPos>=4) { if (number<=15) { Serial.write(bcdCode[number]); } number=0; numberPos=0; } } } } } } }
+
+  private:
+    uint32_t timerRx;
+    bool needCR=false;
+    bool isIdle;
+    bool isAddress;
+    uint32_t ric;
+    uint8_t function;
+    bool parity;
+    uint8_t text=0;
+    uint8_t textPos=0;
+    uint8_t number=0;
+    uint8_t numberPos=0; };
 
 #endif
