@@ -22,14 +22,16 @@ SX1278 and ESP32 based POCSAG receiver
 #### Console Screenshot (DAPNET DB0HBO)
 ![IMAGE ALT TEXT HERE](https://www.dorstel.de/github/SX1278POCSAG_b_v1.1.png)
 #### Receiver Configuration
-* center frequency in MHz
-* bitrate in kbps
+* center frequency in MHz and Rx error offset frequency in kHz
+  * the Rx error offset is the measured AFC value when Rx error offset is set to 0
+* bitrate in kbps (e.g. 1.2 for 1200 bps)
 * frequency shift in kHz
+  * this means the single sided shift (e.g. 4.5 for +/- 4500 Hz)
 * Rx bandwidth as index (selected from table in SX1278.h)
   * this means the single sided bandwidth
-  * calculated with the formula RXbandwidth >= Fshift+(bitrate/2)
+  * calculation: RXbandwidth >= Fshift+(bitrate/2)
 * AFC bandwidth as index (selected from table in SX1278.h)
-  * calculated with the formula AFCbandwidth >= 2*(Fshift+(bitrate/2))+Ferror
+  * calculation: AFCbandwidth >= 2*(Fshift+(bitrate/2))+Ferror
   * Ferror means the maximum center frequency offset error of the SX1278 module
 #### define statements for the SX1278 based HELTEC LoRa module
     // SX1278.h

@@ -104,18 +104,21 @@ class SX1278FSK {
       for (uint8_t reg=0x00;reg<=0x42;reg++) { uint8_t value=readSPI(reg);
       Serial.print(reg,HEX); Serial.print(" : "); Serial.print(value,HEX); Serial.print("\t"); Serial.print(value,DEC); Serial.print("\t"); Serial.println(value,BIN); } }
 
-    void setFrequency(double freq) {
-      uint32_t value=(uint32_t)round(freq*(1<<14));
+    void setFrequency(double centerFreq, double rxOffset) {
+      Serial.print("Center Frequency: "); Serial.print(centerFreq+(rxOffset/1000),5); Serial.println(" MHz");
+      uint32_t value=(uint32_t)round((centerFreq+(rxOffset/1000))*(1<<14));
       writeSPI(regFreqMSB,(value & 0xFF0000) >> 16);
       writeSPI(regFreqMID,(value & 0x00FF00) >> 8);
       writeSPI(regFreqLSB,value & 0x0000FF); }
 
-    void setBitrate(double br) {
-      uint16_t value=(uint16_t)round(32000.0/br);
+    void setBitrate(double bitrate) {
+      Serial.print("Bitrate: "); Serial.print(bitrate*1000,0); Serial.println(" bps");
+      uint16_t value=(uint16_t)round(32000.0/bitrate);
       writeSPI(regBrMSB,(value & 0xFF00) >> 8);
       writeSPI(regBrLSB,value & 0x00FF); }
 
     void setShift(double shift) {
+      Serial.print("Shift: +/- "); Serial.print(shift*1000,0); Serial.println(" Hz");
       uint16_t value=(uint16_t)round(shift*(1<<11)/125.0);
       writeSPI(regShiftMSB,(value & 0xFF00) >> 8);
       writeSPI(regShiftLSB,value & 0x00FF); }
@@ -197,8 +200,8 @@ class SX1278FSK {
 
     double getGain() { double gain[8]=gainValue; return gain[getReg(regRxLna,7,5)]; }
 
-    void setRssiTresh(int value) {
-      writeSPI(regRssiTresh,(uint8_t)(value*-2)); }
+    void setRssiTresh(int tresh) {
+      writeSPI(regRssiTresh,(uint8_t)(tresh*-2)); }
 
     double getRSSI() { return readSPI(regRssi)/-2.0; }
 

@@ -13,8 +13,7 @@ void setup() {
   modem.initChip();
   modem.printChip();
   timerRSSI=millis()+1000;
-  modem.setFrequency(439.995);
-  //modem.setFrequency(433.33);
+  modem.setFrequency(439.9875,7.446);
   modem.setBitrate(1.2);
   modem.setShift(4.5);
   modem.setRxBandwidth(17);
@@ -22,7 +21,6 @@ void setup() {
   modem.setModeFskRxCont();
   modem.initDioIf();
   modem.restartRx(true);
-  //modem.regDump();
   modem.startSequencer(); }
 
 void loop() {
