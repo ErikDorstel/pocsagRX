@@ -3,43 +3,38 @@
 SX1278FSK modem;
 
 bool monitorRx=false;
-bool debug=false;
-
-uint32_t timerRSSI;
+uint8_t debug=0;
 
 void setup() {
   Serial.begin(115200);
   SPI.begin(SCK, MISO, MOSI, CS);
   modem.initChip();
-  modem.printChip();
-  timerRSSI=millis()+1000;
   modem.setFrequency(439.9875,7.446);
   modem.setBitrate(1.2);
   modem.setShift(4.5);
   modem.setRxBandwidth(17);
   modem.setAfcBandwidth(10);
-  modem.setModeFskRxCont();
-  modem.initDioIf();
-  modem.restartRx(true);
-  modem.startSequencer(); }
+  modem.beginPOCSAG(); }
 
 void loop() {
   static bool isIdle; static bool isAddress; static uint8_t function; static bool parity; static uint32_t ric;
   static uint8_t text=0; static uint8_t textPos=0; static uint8_t number=0; static uint8_t numberPos=0;
 
-  if (millis()>=timerRSSI) { timerRSSI=millis()+1000;
+  if (millis()>=modem.timerRx) { modem.timerRx=millis()+1000;
     modem.restartRx(false);
     if (monitorRx) { modem.printRx(); } }
 
-  if (detectDIO0Flag) { detectDIO0Flag=false; Serial.println("Preamble Detected!"); timerRSSI=millis()+1000; modem.printRx(); }
+  if (detectDIO0Flag) { detectDIO0Flag=false;
+    if (debug) { Serial.println("Preamble Detected!"); }
+    modem.printRx(); modem.timerRx=millis()+1000; }
 
   if (modem.available()) {
     uint8_t rxByte=modem.read();
     uint8_t bitShift=modem.searchSync(rxByte);
 
     if (bitShift!=255) {
-      timerRSSI=millis()+1000;
-      Serial.print("Frame Sync Detected! Bit Shift: "); Serial.println(bitShift);
+      modem.timerRx=millis()+1000;
+      if (debug) { Serial.print("Frame Sync Detected! Bit Shift: "); Serial.println(bitShift); }
       uint32_t batch[16]={0};
 
       for (uint8_t idx=0;idx<=63;idx++) {
@@ -56,7 +51,7 @@ void loop() {
 
         if (modem.checkParity(batch[idx])) { parity=true; } else { parity=false; }
 
-        if (debug) {
+        if (debug>1) {
           Serial.println();
           if (isIdle) { Serial.print("Idle "); }
           if (isAddress) { Serial.print("Address "); } else { Serial.print("Message "); }
@@ -64,7 +59,8 @@ void loop() {
           if (parity) { Serial.println(" Parity Ok"); } else { Serial.println(" Parity Failed"); } }
 
         if ((!isIdle) && isAddress) {
-          ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1); Serial.print("    RIC: "); Serial.println(ric,DEC);
+          ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
+          Serial.print("  RIC: "); Serial.println(ric,DEC);
           function=(batch[idx]&0x1800)>>11; switch(function) {
             case 0: Serial.println("    Message Type: Numeric"); Serial.print("    "); break;
             case 1: Serial.println("    Message Type: 1"); Serial.print("    "); break;

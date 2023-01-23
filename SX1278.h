@@ -63,6 +63,8 @@ class SX1278FSK {
 
     SX1278FSK() {}
 
+    uint32_t timerRx;
+
     uint8_t readSPI(uint8_t addr) {
       digitalWrite(CS, LOW);
       SPI.transfer(addr);
@@ -98,7 +100,7 @@ class SX1278FSK {
 
     void initChip() {
       pinMode(RST, OUTPUT); digitalWrite(RST, HIGH);
-      delay(25); initSPI(); resetChip(); }
+      delay(25); initSPI(); resetChip(); printChip(); }
 
     void regDump() {
       for (uint8_t reg=0x00;reg<=0x42;reg++) { uint8_t value=readSPI(reg);
@@ -225,6 +227,14 @@ class SX1278FSK {
       Serial.print("RSSI: "); Serial.print(getRSSI(),1); Serial.print(" dBm");
       Serial.print("   Gain: "); Serial.print(getGain(),1); Serial.print(" dBm");
       Serial.print("   AFC: "); Serial.print(getAFC(),3); Serial.print(" kHz");
-      Serial.print("   FEI: "); Serial.print(getFEI(),3); Serial.println(" kHz"); } };
+      Serial.print("   FEI: "); Serial.print(getFEI(),3); Serial.println(" kHz"); }
+
+    void beginPOCSAG() {
+      setModeFskRxCont();
+      initDioIf();
+      restartRx(true);
+      startSequencer();
+      timerRx=millis()+1000;
+      Serial.println("POCSAG Rx started ..."); } };
 
 #endif
