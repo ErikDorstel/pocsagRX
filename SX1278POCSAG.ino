@@ -11,7 +11,7 @@ void setup() {
   modem.setShift(4.5);
   modem.setRxBandwidth(17);
   modem.setAfcBandwidth(10);
-  modem.beginPOCSAG(); }
+  modem.beginPOCSAG(false); }
 
 void loop() {
   static bool isIdle; static bool isAddress; static uint8_t function; static bool parity; static uint32_t ric;
@@ -62,14 +62,15 @@ void loop() {
             case 0: Serial.println("    Message Type: Numeric"); Serial.print("    "); break;
             case 1: Serial.println("    Message Type: 1"); Serial.print("    "); break;
             case 2: Serial.println("    Message Type: 2"); Serial.print("    "); break;
-            default: Serial.println("    Message Type: Text"); Serial.print("    "); } }
+            default: Serial.println("    Message Type: Text"); Serial.print("    "); }
+            if (modem.forceText) { function=3; } }
 
         if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
 
         if ((!isIdle) && (!isAddress) && (function==3)) {
           for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
             text>>=1; text|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
-            textPos++; if (textPos>=7) { text>>=1; Serial.write(text); text=0; textPos=0; } } }
+            textPos++; if (textPos>=7) { text>>=1; modem.consoleDE(text); text=0; textPos=0; } } }
 
         if ((!isIdle) && (!isAddress) && (function==0)) {
           for (uint8_t bitPos=30;bitPos>=11;bitPos--) {

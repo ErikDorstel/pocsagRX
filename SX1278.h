@@ -60,12 +60,13 @@ uint8_t bcdCode[16]={0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x2a,0x55
 
 class SX1278FSK {
   public:
-
     uint32_t timerRx;
-    bool monitorRx=false;
-    uint8_t debug=0;
+    bool monitorRx;
+    uint8_t debug;
+    bool forceText;
 
-    SX1278FSK(bool monitorRx=false, uint8_t debug=0) {}
+    SX1278FSK(bool _monitorRx=false, uint8_t _debug=0) {
+      monitorRx=_monitorRx; debug=_debug; }
 
     uint8_t readSPI(uint8_t addr) {
       digitalWrite(CS, LOW);
@@ -231,12 +232,24 @@ class SX1278FSK {
       Serial.print("   AFC: "); Serial.print(getAFC(),3); Serial.print(" kHz");
       Serial.print("   FEI: "); Serial.print(getFEI(),3); Serial.println(" kHz"); }
 
-    void beginPOCSAG() {
+    void beginPOCSAG(bool _forceText=false) {
+      forceText=_forceText;
       setModeFskRxCont();
       initDioIf();
       restartRx(true);
       startSequencer();
       timerRx=millis()+1000;
-      Serial.println("POCSAG Rx started ..."); } };
+      Serial.println("POCSAG Rx started ..."); }
+
+    void consoleDE(uint8_t code) {
+      switch(code) {
+        case 0x5b: Serial.print("\u00c4"); break;
+        case 0x5c: Serial.print("\u00d6"); break;
+        case 0x5d: Serial.print("\u00dc"); break;
+        case 0x7b: Serial.print("\u00e4"); break;
+        case 0x7c: Serial.print("\u00f6"); break;
+        case 0x7d: Serial.print("\u00fc"); break;
+        case 0x7e: Serial.print("\u00df"); break;
+        default: Serial.write(code); } } };
 
 #endif
