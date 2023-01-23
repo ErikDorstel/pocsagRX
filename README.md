@@ -20,7 +20,7 @@ SX1278 and ESP32 based POCSAG receiver
 #### Development Hardware
 ![IMAGE ALT TEXT HERE](https://www.dorstel.de/github/SX1278POCSAG_a_v1.0.png)
 #### Console Screenshot (DAPNET DB0HBO)
-![IMAGE ALT TEXT HERE](https://www.dorstel.de/github/SX1278POCSAG_b_v1.0.png)
+![IMAGE ALT TEXT HERE](https://www.dorstel.de/github/SX1278POCSAG_b_v1.1.png)
 #### Receiver Configuration
 * center frequency in MHz
 * bitrate in kbps
