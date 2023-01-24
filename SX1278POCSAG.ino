@@ -9,8 +9,8 @@ void setup() {
   modem.setFrequency(439.9875,7.446);
   modem.setBitrate(1.2);
   modem.setShift(4.5);
-  modem.setRxBandwidth(17);
-  modem.setAfcBandwidth(10);
+  modem.setRxBwAuto();
+  modem.setAfcBwAuto();
   modem.beginPOCSAG(false); }
 
 void loop() {

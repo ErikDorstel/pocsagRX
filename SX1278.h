@@ -48,21 +48,26 @@
 #define regDioMap2 0x41
 #define regChipVersion 0x42
 
-//      bwValue   0    1      2    3    4     5     6   7     8     9  10    11    12    13    14   15   16   17   18   19   20   Index
-//      bwValue 250  200  166.7  125  100  83.3  62.5  50  41.7  31.3  25  20.8  15.6  12.5  10.4  7.8  6.3  5.2  3.9  3.1  2.6   Bandwidth kHz
-#define bwValue { 1,   9,    17,   2,  10,   18,    3, 11,   19,    4, 12,   20,    5,   13,   21,   6,  14,  22,   7,  15,  23 }
+#define gainValues {0,0,-6,-12,-24,-36,-48,0}
 
-#define gainValue {0,0,-6,-12,-24,-36,-48,0}
+double bwValues[21]=  { 2.6, 3.1, 3.9, 5.2, 6.3, 7.8, 10.4, 12.5, 15.6, 20.8, 25, 31.3, 41.7, 50, 62.5, 83.3, 100, 125, 166.7, 200, 250 };
+uint8_t bwIntegers[21]={ 23,  15,   7,  22,  14,   6,   21,   13,    5,   20, 12,    4,    19,11,    3,   18,  10,   2,    17,   9,   1 };
 
 uint8_t syncWord[4]={0x7c,0xd2,0x15,0xd8};
 
-uint8_t bcdCode[16]={0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x2a,0x55,0x20,0x2d,0x29,0x28};
+uint8_t bcdCodes[16]={0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x2a,0x55,0x20,0x2d,0x29,0x28};
 
 class SX1278FSK {
   public:
     bool monitorRx;
     uint8_t debug;
     bool forceText;
+    double centerFreq;
+    double rxOffset;
+    double bitrate;
+    double shift;
+    double rxBandwidth;
+    double afcBandwidth;
 
     SX1278FSK(bool _monitorRx=false, uint8_t _debug=0) {
       monitorRx=_monitorRx; debug=_debug; }
@@ -108,32 +113,43 @@ class SX1278FSK {
       for (uint8_t reg=0x00;reg<=0x42;reg++) { uint8_t value=readSPI(reg);
       Serial.print(reg,HEX); Serial.print(" : "); Serial.print(value,HEX); Serial.print("\t"); Serial.print(value,DEC); Serial.print("\t"); Serial.println(value,BIN); } }
 
-    void setFrequency(double centerFreq, double rxOffset) {
+    void setFrequency(double _centerFreq, double _rxOffset) {
+      centerFreq=_centerFreq; rxOffset=_rxOffset;
       Serial.print("Center Frequency: "); Serial.print(centerFreq+(rxOffset/1000),5); Serial.println(" MHz");
       uint32_t value=(uint32_t)round((centerFreq+(rxOffset/1000))*(1<<14));
       writeSPI(regFreqMSB,(value & 0xFF0000) >> 16);
       writeSPI(regFreqMID,(value & 0x00FF00) >> 8);
       writeSPI(regFreqLSB,value & 0x0000FF); }
 
-    void setBitrate(double bitrate) {
+    void setBitrate(double _bitrate) {
+      bitrate=_bitrate;
       Serial.print("Bitrate: "); Serial.print(bitrate*1000,0); Serial.println(" bps");
       uint16_t value=(uint16_t)round(32000.0/bitrate);
       writeSPI(regBrMSB,(value & 0xFF00) >> 8);
       writeSPI(regBrLSB,value & 0x00FF); }
 
-    void setShift(double shift) {
+    void setShift(double _shift) {
+      shift=_shift;
       Serial.print("Shift: +/- "); Serial.print(shift*1000,0); Serial.println(" Hz");
       uint16_t value=(uint16_t)round(shift*(1<<11)/125.0);
       writeSPI(regShiftMSB,(value & 0xFF00) >> 8);
       writeSPI(regShiftLSB,value & 0x00FF); }
 
-    void setRxBandwidth(uint8_t index) {
-      uint8_t bw[21]=bwValue;
-      setReg(regRxBw,4,0,bw[index]); }
+    void setRxBandwidth(double _rxBandwidth) {
+      uint8_t selected=20; for (uint8_t idx=0;idx<=20;idx++) {
+        if (bwValues[idx]>=_rxBandwidth) { selected=idx; break; } }
+      Serial.print("Rx Bandwidth: "); Serial.print(bwValues[selected],1); Serial.println(" kHz");
+      setReg(regRxBw,4,0,bwIntegers[selected]); rxBandwidth=bwValues[selected]; }
 
-    void setAfcBandwidth(uint8_t index) {
-      uint8_t bw[21]=bwValue;
-      setReg(regAfcBw,4,0,bw[index]); }
+    void setRxBwAuto() { setRxBandwidth(shift+(bitrate/2)); }
+
+    void setAfcBandwidth(double _afcBandwidth) {
+      uint8_t selected=20; for (uint8_t idx=0;idx<=20;idx++) {
+        if (bwValues[idx]>=_afcBandwidth) { selected=idx; break; } }
+      Serial.print("AFC Bandwidth: "); Serial.print(bwValues[selected],1); Serial.println(" kHz");
+      setReg(regAfcBw,4,0,bwIntegers[selected]); afcBandwidth=bwValues[selected]; }
+
+    void setAfcBwAuto(double error=12) { setAfcBandwidth(2*(shift+(bitrate/2))+error); }
 
     void setModeFskRxCont() {
       setReg(regOpMode,7,7,0); // Mode 0:FSK/OOK 1:LoRa
@@ -202,7 +218,7 @@ class SX1278FSK {
       int16_t value=(valueMSB<<8)|valueLSB;
       return (double)value/16.384; }
 
-    double getGain() { double gain[8]=gainValue; return gain[getReg(regRxLna,7,5)]; }
+    double getGain() { double gain[8]=gainValues; return gain[getReg(regRxLna,7,5)]; }
 
     void setRssiTresh(int tresh) {
       writeSPI(regRssiTresh,(uint8_t)(tresh*-2)); }
@@ -317,7 +333,7 @@ class SX1278FSK {
               needCR=true;
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 number<<=1; number|=(batch[idx]&(1<<bitPos))>>bitPos;
-                numberPos++; if (numberPos>=4) { if (number<=15) { Serial.write(bcdCode[number]); } number=0; numberPos=0; } } } } } } }
+                numberPos++; if (numberPos>=4) { if (number<=15) { Serial.write(bcdCodes[number]); } number=0; numberPos=0; } } } } } } }
 
   private:
     uint32_t timerRx;

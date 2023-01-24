@@ -27,12 +27,14 @@ SX1278 and ESP32 based POCSAG receiver
 * bitrate in kbps (e.g. 1.2 for 1200 bps)
 * frequency shift in kHz
   * this means the single sided shift (e.g. 4.5 for +/- 4500 Hz)
-* Rx bandwidth as index (selected from table in SX1278.h)
+* Rx bandwidth in kHz (choose the next larger value from table in SX1278.h)
   * this means the single sided bandwidth
   * calculation: RXbandwidth >= Fshift+(bitrate/2)
-* AFC bandwidth as index (selected from table in SX1278.h)
+  * the auto function uses the above formula
+* AFC bandwidth in kHz (choose the next larger value from table in SX1278.h)
   * calculation: AFCbandwidth >= 2*(Fshift+(bitrate/2))+Ferror
   * Ferror means the maximum center frequency offset error of the SX1278 module
+  * the auto function uses the above formula
 #### define statements for the SX1278 based HELTEC LoRa module
     // SX1278.h
     #define SCK 5
