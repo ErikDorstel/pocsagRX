@@ -276,7 +276,7 @@ class SX1278FSK {
 
       if (detectDIO0Flag) { detectDIO0Flag=false;
         if (needCR) { needCR=false; Serial.println(); }
-        if (debug) { Serial.println("Preamble Detected!"); }
+        if (debug>1) { Serial.println("Preamble Detected!"); }
         printRx(); timerRx=millis()+1000; }
 
       if (available()) {
@@ -285,7 +285,7 @@ class SX1278FSK {
 
         if (bitShift!=255) {
           timerRx=millis()+1000;
-          if (debug) {
+          if (debug>1) {
             if (needCR) { needCR=false; Serial.println(); }
             Serial.print("Frame Sync Detected! Bit Shift: "); Serial.println(bitShift); }
           uint32_t batch[16]={0};
@@ -304,7 +304,7 @@ class SX1278FSK {
 
             if (checkParity(batch[idx])) { parity=true; } else { parity=false; }
 
-            if (debug>1) {
+            if (debug>2) {
               if (needCR) { needCR=false; Serial.println(); }
               if (isIdle) { Serial.print("Idle "); }
               if (isAddress) { Serial.print("Address "); } else { Serial.print("Message "); }
@@ -314,34 +314,34 @@ class SX1278FSK {
             if ((!isIdle) && isAddress) {
               if (needCR) { needCR=false; Serial.println(); }
               ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
-              Serial.print("  RIC: "); Serial.println(ric,DEC);
+              if (debug) { Serial.print("  RIC: "); Serial.println(ric,DEC); }
               function=(batch[idx]&0x1800)>>11;
               if (isBOS) {
                 switch(function) {
-                  case 0b00: Serial.println("    Sub RIC: A"); isText=true; break;
-                  case 0b01: Serial.println("    Sub RIC: B"); isText=true; break;
-                  case 0b10: Serial.println("    Sub RIC: C"); isText=true; break;
-                  default: Serial.println("    Sub RIC: D"); isText=true; break; } }
+                  case 0b00: if (debug) { Serial.println("    Sub RIC: A"); } isText=true; break;
+                  case 0b01: if (debug) { Serial.println("    Sub RIC: B"); } isText=true; break;
+                  case 0b10: if (debug) { Serial.println("    Sub RIC: C"); } isText=true; break;
+                  default: if (debug) { Serial.println("    Sub RIC: D"); } isText=true; break; } }
               else {
                 switch(function) {
-                  case 0b00: Serial.println("    Message Type: Numeric"); isText=false; break;
-                  case 0b01: Serial.println("    Message Type: 1"); isText=false; break;
-                  case 0b10: Serial.println("    Message Type: 2"); isText=false; break;
-                  default: Serial.println("    Message Type: Text"); isText=true; } } }
+                  case 0b00: if (debug) { Serial.println("    Message Type: Numeric"); } isText=false; break;
+                  case 0b01: if (debug) { Serial.println("    Message Type: 1"); } isText=false; break;
+                  case 0b10: if (debug) { Serial.println("    Message Type: 2"); } isText=false; break;
+                  default: if (debug) { Serial.println("    Message Type: Text"); } isText=true; } } }
 
             if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
 
             if ((!isAddress) && (isText)) {
-              if (!needCR) { needCR=true; Serial.print("    "); }
+              if ((!needCR) && debug) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 text>>=1; text|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
-                textPos++; if (textPos>=7) { text>>=1; consoleDE(text); text=0; textPos=0; } } }
+                textPos++; if (textPos>=7) { text>>=1; if (debug) { consoleDE(text); } text=0; textPos=0; } } }
 
             if ((!isAddress) && (!isText)) {
-              if (!needCR) { needCR=true; Serial.print("    "); }
+              if ((!needCR) && debug) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 number<<=1; number|=(batch[idx]&(1<<bitPos))>>bitPos;
-                numberPos++; if (numberPos>=4) { if (number<=15) { Serial.write(bcdCodes[number]); } number=0; numberPos=0; } } } } } } }
+                numberPos++; if (numberPos>=4) { if (number<=15 && debug) { Serial.write(bcdCodes[number]); } number=0; numberPos=0; } } } } } } }
 
   private:
     uint32_t timerRx;

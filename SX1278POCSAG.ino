@@ -1,6 +1,8 @@
 #include "SX1278.h"
 
-SX1278FSK modem(false,0);
+SX1278FSK modem(false,1);
+
+#include "CLI.h"
 
 void setup() {
   Serial.begin(115200);
@@ -14,4 +16,4 @@ void setup() {
   modem.beginPOCSAG(false); }
 
 void loop() {
-  modem.decodePOCSAG(); }
+  modem.decodePOCSAG(); cliWorker(); }
