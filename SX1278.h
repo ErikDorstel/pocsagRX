@@ -61,7 +61,7 @@ class SX1278FSK {
   public:
     bool monitorRx;
     uint8_t debug;
-    bool forceText;
+    bool isBOS;
     double centerFreq;
     double rxOffset;
     double bitrate;
@@ -247,8 +247,8 @@ class SX1278FSK {
       Serial.print("   AFC: "); Serial.print(getAFC(),3); Serial.print(" kHz");
       Serial.print("   FEI: "); Serial.print(getFEI(),3); Serial.println(" kHz"); }
 
-    void beginPOCSAG(bool _forceText=false) {
-      forceText=_forceText;
+    void beginPOCSAG(bool _isBOS=false) {
+      isBOS=_isBOS;
       setModeFskRxCont();
       initDioIf();
       restartRx(true);
@@ -257,7 +257,9 @@ class SX1278FSK {
       Serial.println("POCSAG Rx started ..."); }
 
     void consoleDE(uint8_t code) {
-      switch(code) {
+      if ((code>0x0 && code<0x20) || code>0x7e) { Serial.print("["); Serial.print(code,DEC); Serial.print("]"); }
+      else { switch(code) {
+        case 0x0: break;
         case 0x5b: Serial.print("\u00c4"); break;
         case 0x5c: Serial.print("\u00d6"); break;
         case 0x5d: Serial.print("\u00dc"); break;
@@ -265,7 +267,7 @@ class SX1278FSK {
         case 0x7c: Serial.print("\u00f6"); break;
         case 0x7d: Serial.print("\u00fc"); break;
         case 0x7e: Serial.print("\u00df"); break;
-        default: Serial.write(code); } }
+        default: Serial.write(code); } } }
 
     void decodePOCSAG() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
@@ -314,22 +316,28 @@ class SX1278FSK {
               ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
               Serial.print("  RIC: "); Serial.println(ric,DEC);
               function=(batch[idx]&0x1800)>>11;
+              if (isBOS) {
                 switch(function) {
-                  case 0: Serial.println("    Message Type: Numeric"); break;
-                  case 1: Serial.println("    Message Type: 1"); break;
-                  case 2: Serial.println("    Message Type: 2"); break;
-                  default: Serial.println("    Message Type: Text"); }
-              if (forceText) { function=3; } }
+                  case 0b00: Serial.println("    Sub RIC: A"); isText=true; break;
+                  case 0b01: Serial.println("    Sub RIC: B"); isText=true; break;
+                  case 0b10: Serial.println("    Sub RIC: C"); isText=true; break;
+                  default: Serial.println("    Sub RIC: D"); isText=true; break; } }
+              else {
+                switch(function) {
+                  case 0b00: Serial.println("    Message Type: Numeric"); isText=false; break;
+                  case 0b01: Serial.println("    Message Type: 1"); isText=false; break;
+                  case 0b10: Serial.println("    Message Type: 2"); isText=false; break;
+                  default: Serial.println("    Message Type: Text"); isText=true; } } }
 
             if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
 
-            if ((!isAddress) && (function==3)) {
+            if ((!isAddress) && (isText)) {
               if (!needCR) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 text>>=1; text|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
                 textPos++; if (textPos>=7) { text>>=1; consoleDE(text); text=0; textPos=0; } } }
 
-            if ((!isAddress) && (function==0)) {
+            if ((!isAddress) && (!isText)) {
               if (!needCR) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 number<<=1; number|=(batch[idx]&(1<<bitPos))>>bitPos;
@@ -338,6 +346,7 @@ class SX1278FSK {
   private:
     uint32_t timerRx;
     bool needCR=false;
+    bool isText;
     bool isIdle;
     bool isAddress;
     uint32_t ric;
