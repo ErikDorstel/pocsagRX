@@ -113,7 +113,7 @@ class SX1278FSK {
       for (uint8_t reg=0x00;reg<=0x42;reg++) { uint8_t value=readSPI(reg);
       Serial.print(reg,HEX); Serial.print(" : "); Serial.print(value,HEX); Serial.print("\t"); Serial.print(value,DEC); Serial.print("\t"); Serial.println(value,BIN); } }
 
-    void setFrequency(double _centerFreq, double _rxOffset) {
+    void setFrequency(double _centerFreq, double _rxOffset=0) {
       centerFreq=_centerFreq; rxOffset=_rxOffset;
       Serial.print("Center Frequency: "); Serial.print(centerFreq+(rxOffset/1000),5); Serial.println(" MHz");
       uint32_t value=(uint32_t)round((centerFreq+(rxOffset/1000))*(1<<14));
@@ -315,22 +315,22 @@ class SX1278FSK {
               Serial.print("  RIC: "); Serial.println(ric,DEC);
               function=(batch[idx]&0x1800)>>11;
                 switch(function) {
-                  case 0: Serial.println("    Message Type: Numeric"); Serial.print("    "); break;
-                  case 1: Serial.println("    Message Type: 1"); Serial.print("    "); break;
-                  case 2: Serial.println("    Message Type: 2"); Serial.print("    "); break;
-                  default: Serial.println("    Message Type: Text"); Serial.print("    "); }
+                  case 0: Serial.println("    Message Type: Numeric"); break;
+                  case 1: Serial.println("    Message Type: 1"); break;
+                  case 2: Serial.println("    Message Type: 2"); break;
+                  default: Serial.println("    Message Type: Text"); }
               if (forceText) { function=3; } }
 
             if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
 
             if ((!isAddress) && (function==3)) {
-              needCR=true;
+              if (!needCR) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 text>>=1; text|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
                 textPos++; if (textPos>=7) { text>>=1; consoleDE(text); text=0; textPos=0; } } }
 
             if ((!isAddress) && (function==0)) {
-              needCR=true;
+              if (!needCR) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 number<<=1; number|=(batch[idx]&(1<<bitPos))>>bitPos;
                 numberPos++; if (numberPos>=4) { if (number<=15) { Serial.write(bcdCodes[number]); } number=0; numberPos=0; } } } } } } }
