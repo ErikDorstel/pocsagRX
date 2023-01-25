@@ -278,6 +278,7 @@ class SX1278FSK {
         if (needCR) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.println("Preamble Detected!"); }
         if (debug) { printRx(); }
+        if (isBOS) { isText=false; } else { isText=true; }
         timerRx=millis()+1000; }
 
       if (available()) {
