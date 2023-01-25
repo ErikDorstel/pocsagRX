@@ -277,7 +277,8 @@ class SX1278FSK {
       if (detectDIO0Flag) { detectDIO0Flag=false;
         if (needCR) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.println("Preamble Detected!"); }
-        printRx(); timerRx=millis()+1000; }
+        if (debug) { printRx(); }
+        timerRx=millis()+1000; }
 
       if (available()) {
         uint8_t rxByte=read();
