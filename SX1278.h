@@ -329,7 +329,7 @@ class SX1278FSK {
               if (needCR) { needCR=false; Serial.println(); }
               isDAU=false;
               ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
-              if (ric==4520) { isROT1=true; } else { isROT1=false; }
+              if (ric==4512 || ric==4520) { isROT1=true; } else { isROT1=false; }
               if (debug) { Serial.print("  RIC: "); Serial.println(ric,DEC); }
               if (debug && isROT1) { Serial.println("    Encoded: ROT1"); }
               function=(batch[idx]&0x1800)>>11;
