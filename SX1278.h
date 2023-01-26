@@ -288,7 +288,7 @@ class SX1278FSK {
         if (debug>1) { Serial.println("Preamble Detected!"); }
         if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected."); }
         if (debug) { printRx(); }
-        if (isBOS) { isText=false; } else { isText=true; }
+        if (isBOS) { isDAU=true; } else { isDAU=false; }
         timerRx=millis()+1000; }
 
       if (available()) {
@@ -327,6 +327,7 @@ class SX1278FSK {
 
             if ((!isIdle) && isAddress) {
               if (needCR) { needCR=false; Serial.println(); }
+              isDAU=false;
               ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
               if (ric==4520) { isROT1=true; } else { isROT1=false; }
               if (debug) { Serial.print("  RIC: "); Serial.println(ric,DEC); }
@@ -337,13 +338,24 @@ class SX1278FSK {
                   case 0b00: if (debug) { Serial.println("    Sub RIC: A"); } isText=true; break;
                   case 0b01: if (debug) { Serial.println("    Sub RIC: B"); } isText=true; break;
                   case 0b10: if (debug) { Serial.println("    Sub RIC: C"); } isText=true; break;
-                  default: if (debug) { Serial.println("    Sub RIC: D"); } isText=true; break; } }
+                  default: if (debug) { Serial.println("    Sub RIC: D"); } isText=true; } }
               else {
                 switch(function) {
                   case 0b00: if (debug) { Serial.println("    Message Type: Numeric"); } isText=false; break;
                   case 0b01: if (debug) { Serial.println("    Message Type: 1"); } isText=false; break;
                   case 0b10: if (debug) { Serial.println("    Message Type: 2"); } isText=false; break;
                   default: if (debug) { Serial.println("    Message Type: Text"); } isText=true; } } }
+
+            if ((!isAddress) && (isDAU)) {
+              isAddress=true;
+              dau=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
+              if (debug) { Serial.print("  DAU RIC: "); Serial.println(dau,DEC); }
+              function=(batch[idx]&0x1800)>>11;
+              switch(function) {
+                case 0b00: if (debug) { Serial.println("    DAU Sub RIC: A"); } break;
+                case 0b01: if (debug) { Serial.println("    DAU Sub RIC: B"); } break;
+                case 0b10: if (debug) { Serial.println("    DAU Sub RIC: C"); } break;
+                default: if (debug) { Serial.println("    DAU Sub RIC: D"); } } }
 
             if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
 
@@ -366,7 +378,9 @@ class SX1278FSK {
     bool isROT1;
     bool isIdle;
     bool isAddress;
+    bool isDAU;
     uint32_t ric;
+    uint32_t dau;
     uint8_t function;
     bool parity;
     uint8_t text=0;
