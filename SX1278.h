@@ -155,7 +155,7 @@ class SX1278FSK {
       setReg(regOpMode,7,7,0); // Mode 0:FSK/OOK 1:LoRa
       setReg(regOpMode,6,5,0); // Modulation 0:FSK 1:OOK
       setReg(regOpMode,3,3,1); // Frequency Mode 0:High 1:Low
-      setReg(regOpMode,2,0,1); // Transceiver Mode 0:Sleep 1:Standby 3:Tx 5:Rx
+      setReg(regOpMode,2,0,1); // Transceiver Mode 0:Sleep 1:Standby 2:FSTx 3:Tx 4:FSRx 5:Rx
       setReg(regOokPeak,5,5,1); // Bit Synchronizer 0:Off 1:On
       setReg(regRxCfg,7,7,0); // Restart Rx on Collision 0:Off 1:On
       setReg(regRxCfg,4,4,1); // AFC Auto 0:Off 1:On
@@ -181,11 +181,18 @@ class SX1278FSK {
       setReg(regPckLength,7,0,255); } // Packet Length LSB
 
     void startSequencer() {
+      setReg(regOpMode,2,0,1); // Transceiver Mode 0:Sleep 1:Standby 2:FSTx 3:Tx 4:FSRx 5:Rx
       setReg(regRxTimeout2,7,0,4); // Preamble Timeout 0:Off x:x*16*Tbit
       setReg(regRxTimeout3,7,0,0); // Frame Sync Timeout 0:Off x:x*16*Tbit
       setReg(regSeqConfig1,4,3,1); // Sequence from Start to 0:Low Power 1:Rx 2:Tx
       setReg(regSeqConfig2,4,3,0); // Sequence from Rx Timeout to 0:Rx Restart 1:Tx 2:Low Power 3:Off
       setReg(regSeqConfig1,7,7,1); } // Sequencer Start
+
+    void stopSequencer() {
+      setReg(regSeqConfig1,6,6,1); // Sequencer Stop
+      setReg(regRxTimeout2,7,0,0); // Preamble Timeout 0:Off x:x*16*Tbit
+      delay(100);
+      setReg(regOpMode,2,0,4); } // Transceiver Mode 0:Sleep 1:Standby 2:FSTx 3:Tx 4:FSRx 5:Rx
 
     void initDioIf() {
       setReg(regDioMap1,7,6,1); // DIO0 Mapping 0:Sync Word 1:RSSI/Preamble Detect
@@ -277,6 +284,7 @@ class SX1278FSK {
       if (detectDIO0Flag) { detectDIO0Flag=false;
         if (needCR) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.println("Preamble Detected!"); }
+        if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz"); }
         if (debug) { printRx(); }
         if (isBOS) { isText=false; } else { isText=true; }
         timerRx=millis()+1000; }

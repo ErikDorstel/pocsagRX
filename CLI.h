@@ -7,8 +7,9 @@ void help() {
   Serial.println("get rxstat");
   Serial.println("get rxconf");
   Serial.println("set freq [137-525]");
+  Serial.println("set offset [0-100|auto]");
   Serial.println("set bitrate [0.075-250]");
-  Serial.println("set shift [0-200]");
+  Serial.println("set shift [0.6-200]");
   Serial.println("set rxbw [2.6-250|auto]");
   Serial.println("set afcbw [2.6-250|auto]");
   Serial.println("restart rx");
@@ -31,9 +32,11 @@ void doParse() {
     Serial.print("Shift Frequency: +/- "); Serial.print(modem.shift*1000,0); Serial.println(" Hz");
     Serial.print("Rx Bandwidth: "); Serial.print(modem.rxBandwidth,1); Serial.println(" kHz");
     Serial.print("AFC Bandwidth: "); Serial.print(modem.afcBandwidth,1); Serial.println(" kHz"); }
-  if (cmdLine.startsWith("set freq")) { modem.setFrequency(value.toDouble()); }
+  if (cmdLine.startsWith("set freq")) { modem.stopSequencer(); modem.setFrequency(value.toDouble()); modem.startSequencer(); modem.restartRx(true); }
+  if (cmdLine.startsWith("set offset")) { if (value!="auto") { modem.rxOffset=value.toDouble(); }
+    modem.stopSequencer(); modem.setFrequency(modem.centerFreq,modem.rxOffset); modem.startSequencer(); modem.restartRx(true); }
   if (cmdLine.startsWith("set bitrate")) { modem.setBitrate(value.toDouble()); }
-  if (cmdLine.startsWith("set shift")) { modem.setShift(value.toDouble()); }
+  if (cmdLine.startsWith("set shift")) { modem.stopSequencer(); modem.setShift(value.toDouble()); modem.startSequencer(); modem.restartRx(true); }
   if (cmdLine.startsWith("set rxbw")) { if (value=="auto") { modem.setRxBwAuto(); } else { modem.setRxBandwidth(value.toDouble()); } }
   if (cmdLine.startsWith("set afcbw")) { if (value=="auto") { modem.setAfcBwAuto(); } else { modem.setAfcBandwidth(value.toDouble()); } }
   if (cmdLine.startsWith("restart rx")) { modem.restartRx(true); Serial.println("Rx and PLL restarted"); }
