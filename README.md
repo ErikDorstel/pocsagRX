@@ -6,6 +6,7 @@ SX1278 and ESP32 based POCSAG receiver
 * serial console logging of received messages
 * works with direct connected ESP32 (see pin description below)
 * also works with HELTEC SX1278 based LoRa module (requires modification of pin define statements)
+* serial console Command Line Interface for configuration and debugging
 #### SPI bus
 * GPIO 19 - MISO
 * GPIO 23 - MOSI

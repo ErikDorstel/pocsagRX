@@ -191,6 +191,7 @@ class SX1278FSK {
     void stopSequencer() {
       setReg(regSeqConfig1,6,6,1); // Sequencer Stop
       setReg(regRxTimeout2,7,0,0); // Preamble Timeout 0:Off x:x*16*Tbit
+      setReg(regRxTimeout3,7,0,0); // Frame Sync Timeout 0:Off x:x*16*Tbit
       delay(100);
       setReg(regOpMode,2,0,4); } // Transceiver Mode 0:Sleep 1:Standby 2:FSTx 3:Tx 4:FSRx 5:Rx
 
@@ -263,7 +264,8 @@ class SX1278FSK {
       timerRx=millis()+1000;
       Serial.println("POCSAG Rx started ..."); }
 
-    void consoleDE(uint8_t code) {
+    void consoleDE(uint8_t code, bool isROT1) {
+      if (isROT1) { code=(code==0)?255:code-1; }
       if ((code>0x0 && code<0x20) || code>0x7e) { Serial.print("["); Serial.print(code,DEC); Serial.print("]"); }
       else { switch(code) {
         case 0x0: break;
@@ -284,7 +286,7 @@ class SX1278FSK {
       if (detectDIO0Flag) { detectDIO0Flag=false;
         if (needCR) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.println("Preamble Detected!"); }
-        if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz"); }
+        if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected."); }
         if (debug) { printRx(); }
         if (isBOS) { isText=false; } else { isText=true; }
         timerRx=millis()+1000; }
@@ -318,13 +320,17 @@ class SX1278FSK {
               if (needCR) { needCR=false; Serial.println(); }
               if (isIdle) { Serial.print("Idle "); }
               if (isAddress) { Serial.print("Address "); } else { Serial.print("Message "); }
-              Serial.print(batch[idx],BIN);
+              for (int8_t bit=31;bit>=0;bit--) {
+                if (bit==30 || bit==10 || bit==0) { Serial.print(" "); }
+                if (batch[idx]&(1<<bit)) { Serial.print("1"); } else { Serial.print("0"); } }
               if (parity) { Serial.println(" Parity Ok"); } else { Serial.println(" Parity Failed"); } }
 
             if ((!isIdle) && isAddress) {
               if (needCR) { needCR=false; Serial.println(); }
               ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
+              if (ric==4520) { isROT1=true; } else { isROT1=false; }
               if (debug) { Serial.print("  RIC: "); Serial.println(ric,DEC); }
+              if (debug && isROT1) { Serial.println("    Encoded: ROT1"); }
               function=(batch[idx]&0x1800)>>11;
               if (isBOS) {
                 switch(function) {
@@ -345,18 +351,19 @@ class SX1278FSK {
               if ((!needCR) && debug) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 text>>=1; text|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
-                textPos++; if (textPos>=7) { text>>=1; if (debug) { consoleDE(text); } text=0; textPos=0; } } }
+                textPos++; if (textPos>=7) { text>>=1; if (debug) { consoleDE(text,isROT1); } text=0; textPos=0; } } }
 
             if ((!isAddress) && (!isText)) {
               if ((!needCR) && debug) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 number<<=1; number|=(batch[idx]&(1<<bitPos))>>bitPos;
-                numberPos++; if (numberPos>=4) { if (number<=15 && debug) { Serial.write(bcdCodes[number]); } number=0; numberPos=0; } } } } } } }
+                numberPos++; if (numberPos>=4) { if (debug) { Serial.write(bcdCodes[number]); } number=0; numberPos=0; } } } } } } }
 
   private:
     uint32_t timerRx;
     bool needCR=false;
     bool isText;
+    bool isROT1;
     bool isIdle;
     bool isAddress;
     uint32_t ric;
