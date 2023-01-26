@@ -265,7 +265,7 @@ class SX1278FSK {
       Serial.println("POCSAG Rx started ..."); }
 
     void consoleDE(uint8_t code, bool isROT1) {
-      if (isROT1) { code=(code==0)?255:code-1; }
+      if (isROT1) { code=(code==0)?127:code-1; }
       if ((code>0x0 && code<0x20) || code>0x7e) { Serial.print("["); Serial.print(code,DEC); Serial.print("]"); }
       else { switch(code) {
         case 0x0: break;
@@ -346,20 +346,13 @@ class SX1278FSK {
                   case 0b10: if (debug) { Serial.println("    Message Type: 2"); } isText=false; break;
                   default: if (debug) { Serial.println("    Message Type: Text"); } isText=true; } } }
 
-            if ((!isAddress) && (isDAU)) {
-              isAddress=true;
-              dau=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
-              if (debug) { Serial.print("  DAU RIC: "); Serial.println(dau,DEC); }
-              function=(batch[idx]&0x1800)>>11;
-              switch(function) {
-                case 0b00: if (debug) { Serial.println("    DAU Sub RIC: A"); } break;
-                case 0b01: if (debug) { Serial.println("    DAU Sub RIC: B"); } break;
-                case 0b10: if (debug) { Serial.println("    DAU Sub RIC: C"); } break;
-                default: if (debug) { Serial.println("    DAU Sub RIC: D"); } } }
-
             if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
 
-            if ((!isAddress) && (isText)) {
+            if ((!isAddress) && isDAU) {
+              isText=false;
+              if (debug && idx==0) { Serial.print("    DAU Address: "); } }
+
+            if ((!isAddress) && isText) {
               if ((!needCR) && debug) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 text>>=1; text|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
@@ -368,8 +361,8 @@ class SX1278FSK {
             if ((!isAddress) && (!isText)) {
               if ((!needCR) && debug) { needCR=true; Serial.print("    "); }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
-                number<<=1; number|=(batch[idx]&(1<<bitPos))>>bitPos;
-                numberPos++; if (numberPos>=4) { if (debug) { Serial.write(bcdCodes[number]); } number=0; numberPos=0; } } } } } } }
+                number>>=1; number|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
+                numberPos++; if (numberPos>=4) { number>>=4; if (debug) { Serial.write(bcdCodes[number]); } number=0; numberPos=0; } } } } } } }
 
   private:
     uint32_t timerRx;
@@ -380,7 +373,6 @@ class SX1278FSK {
     bool isAddress;
     bool isDAU;
     uint32_t ric;
-    uint32_t dau;
     uint8_t function;
     bool parity;
     uint8_t text=0;
