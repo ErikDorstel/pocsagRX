@@ -284,7 +284,7 @@ class SX1278FSK {
         if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
 
       if (detectDIO0Flag) { detectDIO0Flag=false;
-        if (needCR) { needCR=false; Serial.println(); }
+        if (needCR && (debug || rxOffset==0)) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.println("Preamble Detected!"); }
         if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected."); }
         if (debug) { printRx(); }
@@ -326,7 +326,7 @@ class SX1278FSK {
               if (parity) { Serial.println(" Parity Ok"); } else { Serial.println(" Parity Failed"); } }
 
             if ((!isIdle) && isAddress) {
-              if (needCR) { needCR=false; Serial.println(); }
+              if (needCR && debug) { needCR=false; Serial.println(); }
               isDAU=false;
               ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
               if (ric==4512 || ric==4520) { isROT1=true; } else { isROT1=false; }
