@@ -350,7 +350,7 @@ class SX1278FSK {
 
             if ((!isAddress) && isDAU) {
               isText=false;
-              if (debug && idx==0) { Serial.print("    DAU Address: "); } }
+              if (debug && idx==0) { needCR=true; Serial.print("    DAU Address: "); } }
 
             if ((!isAddress) && isText) {
               if ((!needCR) && debug) { needCR=true; Serial.print("    "); }
