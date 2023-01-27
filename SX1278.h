@@ -111,7 +111,7 @@ class SX1278FSK {
 
     void regDump() {
       for (uint8_t reg=0x00;reg<=0x42;reg++) { uint8_t value=readSPI(reg);
-      Serial.print(reg,HEX); Serial.print(" : "); Serial.print(value,HEX); Serial.print("\t"); Serial.print(value,DEC); Serial.print("\t"); Serial.println(value,BIN); } }
+        Serial.print("0x"); Serial.print(reg,HEX); Serial.print(": 0x"); Serial.print(value,HEX); Serial.print("     "); Serial.print(value,DEC); Serial.print("     0b"); Serial.println(value,BIN); } }
 
     void setFrequency(double _centerFreq, double _rxOffset=0) {
       centerFreq=_centerFreq; rxOffset=_rxOffset;
@@ -255,14 +255,14 @@ class SX1278FSK {
       Serial.print("   AFC: "); Serial.print(getAFC(),3); Serial.print(" kHz");
       Serial.print("   FEI: "); Serial.print(getFEI(),3); Serial.println(" kHz"); }
 
-    void beginPOCSAG(bool _isBOS=false) {
-      isBOS=_isBOS;
+    void beginPOCSAG() {
       setModeFskRxCont();
       initDioIf();
       restartRx(true);
       startSequencer();
+      delay(500);
       timerRx=millis()+1000;
-      Serial.println("POCSAG Rx started ..."); }
+      Serial.println("POCSAG Rx started"); }
 
     void consoleDE(uint8_t code, bool isROT1) {
       if (isROT1) { code=(code==0)?127:code-1; }
