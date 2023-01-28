@@ -61,5 +61,6 @@ void doParse() {
 void cliWorker() {
   if (Serial.available()) {
     char serByte=Serial.read();
-    if (serByte==13 || serByte==10) { Serial.println(); doParse(); cmdLine=""; }
+    if (serByte==127) { Serial.write(serByte); cmdLine.remove(cmdLine.length()-1); }
+    else if (serByte==13 || serByte==10) { Serial.println(); doParse(); cmdLine=""; }
     else { Serial.write(serByte); cmdLine+=String(serByte); } } }
