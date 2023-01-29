@@ -18,4 +18,4 @@ void setup() {
   modem.beginPOCSAG(messageReceived);
   readFlash(); }
 
-void loop() { modem.decodePOCSAG(); cliWorker(); }
+void loop() { modem.pocsagWorker(); cliWorker(); }

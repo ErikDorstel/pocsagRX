@@ -34,7 +34,9 @@ void doParse() {
   else if (cmdLine.startsWith("get version")) { modem.printChip(); }
   else if (cmdLine.startsWith("get stat")) { modem.printRx();
     Serial.print("Messages received: "); Serial.print(modem.messageCount);
-    Serial.print("   Errors occured: "); Serial.println(modem.errorCount); }
+    Serial.print("   Errors occured: "); Serial.print(modem.errorCount);
+    Serial.print("   Uptime: "); Serial.print(modem.upTime/86400); Serial.print(" days ");
+    Serial.print((double)(modem.upTime%86400)/3600.0,2); Serial.println(" hours"); }
   else if (cmdLine.startsWith("clear stat")) { modem.messageCount=0; modem.errorCount=0; Serial.println("Statistics cleared"); }
   else if (cmdLine.startsWith("get conf")) {
     Serial.print("Center Frequency: "); Serial.print(modem.centerFreq,5); Serial.println(" MHz");

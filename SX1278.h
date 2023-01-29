@@ -70,6 +70,7 @@ class SX1278FSK {
     double afcBandwidth;
     uint32_t errorCount;
     uint32_t messageCount;
+    uint32_t upTime;
 
     SX1278FSK(bool _monitorRx=false, uint8_t _debug=0) {
       monitorRx=_monitorRx; debug=_debug; }
@@ -282,10 +283,10 @@ class SX1278FSK {
         case 0x7e: return "\u00df"; break;
         default: return String((char)code); } }
 
-    void decodePOCSAG() {
+    void pocsagWorker() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
-        if (isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); error=0; dau=""; message=""; messageCount++; }
-        restartRx(false);
+        if (isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); error=0; ric=0; dau=""; message=""; messageCount++; }
+        restartRx(false); upTime++;
         if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
 
       if (detectDIO0Flag) { detectDIO0Flag=false;
