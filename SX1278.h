@@ -265,11 +265,11 @@ class SX1278FSK {
       timerRx=millis()+1000;
       Serial.println("POCSAG Rx started"); }
 
-    String consoleDE(uint8_t code, bool isROT1) {
+    String consoleDE(uint8_t code) {
       if (isROT1) { code=(code==0)?127:code-1; }
       if ((code>0x0 && code<0x20) || code>0x7e) { return "[" + String(code,DEC) + "]"; }
       switch(code) {
-        case 0x0: break;
+        case 0x0: return ""; break;
         case 0x5b: return "\u00c4"; break;
         case 0x5c: return "\u00d6"; break;
         case 0x5d: return "\u00dc"; break;
@@ -277,8 +277,7 @@ class SX1278FSK {
         case 0x7c: return "\u00f6"; break;
         case 0x7d: return "\u00fc"; break;
         case 0x7e: return "\u00df"; break;
-        default: return String((char)code); }
-      return ""; }
+        default: return String((char)code); } }
 
     void decodePOCSAG() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
@@ -341,15 +340,15 @@ class SX1278FSK {
               if (debug && isROT1) { Serial.println("    Encoded: ROT1"); }
               function=(batch[idx]&0x1800)>>11;
               if (isBOS) { function+=0x41; } else { function+=0x30; }
-                switch(function) {
-                  case '0': if (debug) { Serial.println("    Message Type: Numeric"); } isText=false; break;
-                  case '1': if (debug) { Serial.println("    Message Type: 1"); } isText=false; break;
-                  case '2': if (debug) { Serial.println("    Message Type: 2"); } isText=false; break;
-                  case '3': if (debug) { Serial.println("    Message Type: Text"); } isText=true; break;
-                  case 'A': if (debug) { Serial.println("    Sub RIC: A"); } isText=true; break;
-                  case 'B': if (debug) { Serial.println("    Sub RIC: B"); } isText=true; break;
-                  case 'C': if (debug) { Serial.println("    Sub RIC: C"); } isText=true; break;
-                  case 'D': if (debug) { Serial.println("    Sub RIC: D"); } isText=true; } }
+              switch(function) {
+                case '0': if (debug) { Serial.println("    Message Type: Numeric"); } isText=false; break;
+                case '1': if (debug) { Serial.println("    Message Type: 1"); } isText=false; break;
+                case '2': if (debug) { Serial.println("    Message Type: 2"); } isText=false; break;
+                case '3': if (debug) { Serial.println("    Message Type: Text"); } isText=true; break;
+                case 'A': if (debug) { Serial.println("    Sub RIC: A"); } isText=true; break;
+                case 'B': if (debug) { Serial.println("    Sub RIC: B"); } isText=true; break;
+                case 'C': if (debug) { Serial.println("    Sub RIC: C"); } isText=true; break;
+                case 'D': if (debug) { Serial.println("    Sub RIC: D"); } isText=true; } }
 
             if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
 
@@ -362,8 +361,8 @@ class SX1278FSK {
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 text>>=1; text|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
                 textPos++; if (textPos>=7) { text>>=1;
-                  message+=String(consoleDE(text,isROT1));
-                  if (debug) { Serial.print(consoleDE(text,isROT1)); }
+                  message+=String(consoleDE(text));
+                  if (debug) { Serial.print(consoleDE(text)); }
                   text=0; textPos=0; } } }
 
             if ((!isAddress) && (!isText)) {

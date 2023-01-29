@@ -29,10 +29,10 @@ void doParse() {
   if (cmdLine!="") { Serial.println(); }
   String value=cmdLine.substring(cmdLine.lastIndexOf(" ")+1);
   if (cmdLine.startsWith("debug")) { modem.debug=value.toInt(); Serial.print("Debug Level: "); Serial.println(modem.debug); }
-  if (cmdLine.startsWith("monitor")) { modem.monitorRx=!modem.monitorRx; }
-  if (cmdLine.startsWith("get version")) { modem.printChip(); }
-  if (cmdLine.startsWith("get stat")) { modem.printRx(); }
-  if (cmdLine.startsWith("get conf")) {
+  else if (cmdLine.startsWith("monitor")) { modem.monitorRx=!modem.monitorRx; }
+  else if (cmdLine.startsWith("get version")) { modem.printChip(); }
+  else if (cmdLine.startsWith("get stat")) { modem.printRx(); }
+  else if (cmdLine.startsWith("get conf")) {
     Serial.print("Center Frequency: "); Serial.print(modem.centerFreq,5); Serial.println(" MHz");
     Serial.print("Rx Frequency Offset: "); Serial.print(modem.rxOffset,3); Serial.println(" kHz");
     Serial.print("Bitrate: "); Serial.print(modem.bitrate*1000,0); Serial.println(" bps");
@@ -40,22 +40,22 @@ void doParse() {
     Serial.print("Rx Bandwidth: "); Serial.print(modem.rxBandwidth,1); Serial.println(" kHz");
     Serial.print("AFC Bandwidth: "); Serial.print(modem.afcBandwidth,1); Serial.println(" kHz");
     Serial.print("BOS Mode: "); Serial.println(modem.isBOS); }
-  if (cmdLine.startsWith("get register")) { modem.regDump(); }
-  if (cmdLine.startsWith("set freq")) { modem.stopSequencer(); modem.setFrequency(value.toDouble()); modem.startSequencer(); modem.restartRx(true); }
-  if (cmdLine.startsWith("set offset")) { if (value!="auto") { modem.rxOffset=value.toDouble(); }
+  else if (cmdLine.startsWith("get register")) { modem.regDump(); }
+  else if (cmdLine.startsWith("set freq")) { modem.stopSequencer(); modem.setFrequency(value.toDouble()); modem.startSequencer(); modem.restartRx(true); }
+  else if (cmdLine.startsWith("set offset")) { if (value!="auto") { modem.rxOffset=value.toDouble(); }
     modem.stopSequencer(); modem.setFrequency(modem.centerFreq,modem.rxOffset); modem.startSequencer(); modem.restartRx(true); }
-  if (cmdLine.startsWith("set bitrate")) { modem.setBitrate(value.toDouble()); }
-  if (cmdLine.startsWith("set shift")) { modem.stopSequencer(); modem.setShift(value.toDouble()); modem.startSequencer(); modem.restartRx(true); }
-  if (cmdLine.startsWith("set rxbw")) { if (value=="auto") { modem.setRxBwAuto(); } else { modem.setRxBandwidth(value.toDouble()); } }
-  if (cmdLine.startsWith("set afcbw")) { if (value=="auto") { modem.setAfcBwAuto(); } else { modem.setAfcBandwidth(value.toDouble()); } }
-  if (cmdLine.startsWith("set bos")) { modem.isBOS=!modem.isBOS; Serial.print("BOS Mode: "); Serial.println(modem.isBOS); }
-  if (cmdLine.startsWith("restart rx")) { modem.restartRx(true); Serial.println("Rx and PLL restarted"); }
-  if (cmdLine.startsWith("restart cpu")) { ESP.restart(); }
-  if (cmdLine.startsWith("get flash")) { getFlash(); }
-  if (cmdLine.startsWith("read flash")) { readFlash(); }
-  if (cmdLine.startsWith("write flash")) { writeFlash(); }
-  if (cmdLine.startsWith("erase flash")) { eraseFlash(); }
-  if (cmdLine.startsWith("help")) { help(); }
+  else if (cmdLine.startsWith("set bitrate")) { modem.setBitrate(value.toDouble()); }
+  else if (cmdLine.startsWith("set shift")) { modem.stopSequencer(); modem.setShift(value.toDouble()); modem.startSequencer(); modem.restartRx(true); }
+  else if (cmdLine.startsWith("set rxbw")) { if (value=="auto") { modem.setRxBwAuto(); } else { modem.setRxBandwidth(value.toDouble()); } }
+  else if (cmdLine.startsWith("set afcbw")) { if (value=="auto") { modem.setAfcBwAuto(); } else { modem.setAfcBandwidth(value.toDouble()); } }
+  else if (cmdLine.startsWith("set bos")) { modem.isBOS=!modem.isBOS; Serial.print("BOS Mode: "); Serial.println(modem.isBOS); }
+  else if (cmdLine.startsWith("restart rx")) { modem.restartRx(true); Serial.println("Rx and PLL restarted"); }
+  else if (cmdLine.startsWith("restart cpu")) { ESP.restart(); }
+  else if (cmdLine.startsWith("get flash")) { getFlash(); }
+  else if (cmdLine.startsWith("read flash")) { readFlash(); }
+  else if (cmdLine.startsWith("write flash")) { writeFlash(); }
+  else if (cmdLine.startsWith("erase flash")) { eraseFlash(); }
+  else if (cmdLine.startsWith("help")) { help(); }
   Serial.print("> "); }
 
 void cliWorker() {
