@@ -68,6 +68,8 @@ class SX1278FSK {
     double shift;
     double rxBandwidth;
     double afcBandwidth;
+    uint32_t errorCount;
+    uint32_t messageCount;
 
     SX1278FSK(bool _monitorRx=false, uint8_t _debug=0) {
       monitorRx=_monitorRx; debug=_debug; }
@@ -189,6 +191,7 @@ class SX1278FSK {
       setReg(regSeqConfig1,7,7,1); } // Sequencer Start
 
     void stopSequencer() {
+      timerRx=millis()+2000;
       setReg(regSeqConfig1,6,6,1); // Sequencer Stop
       setReg(regRxTimeout2,7,0,0); // Preamble Timeout 0:Off x:x*16*Tbit
       setReg(regRxTimeout3,7,0,0); // Frame Sync Timeout 0:Off x:x*16*Tbit
@@ -281,7 +284,7 @@ class SX1278FSK {
 
     void decodePOCSAG() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
-        if (isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); error=0; dau=""; message=""; }
+        if (isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); error=0; dau=""; message=""; messageCount++; }
         restartRx(false);
         if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
 
@@ -318,9 +321,9 @@ class SX1278FSK {
 
             if (checkParity(batch[idx])) { parity=true; } else { parity=false; }
 
-            if (isAddress && isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); error=0; message=""; }
+            if (isAddress && isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); error=0; message=""; messageCount++; }
 
-            if ((!parity) && (!isIdle)) { error=1; }
+            if ((!parity) && (!isIdle)) { error++; errorCount++; }
 
             if (debug>2) {
               if (needCR) { needCR=false; Serial.println(); }

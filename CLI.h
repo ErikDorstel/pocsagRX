@@ -7,6 +7,7 @@ void help() {
   Serial.println("monitor");
   Serial.println("get version");
   Serial.println("get stat");
+  Serial.println("clear stat");
   Serial.println("get conf");
   Serial.println("get register");
   Serial.println("set freq [137-525]");
@@ -31,7 +32,10 @@ void doParse() {
   if (cmdLine.startsWith("debug")) { modem.debug=value.toInt(); Serial.print("Debug Level: "); Serial.println(modem.debug); }
   else if (cmdLine.startsWith("monitor")) { modem.monitorRx=!modem.monitorRx; }
   else if (cmdLine.startsWith("get version")) { modem.printChip(); }
-  else if (cmdLine.startsWith("get stat")) { modem.printRx(); }
+  else if (cmdLine.startsWith("get stat")) { modem.printRx();
+    Serial.print("Messages received: "); Serial.print(modem.messageCount);
+    Serial.print("   Errors occured: "); Serial.println(modem.errorCount); }
+  else if (cmdLine.startsWith("clear stat")) { modem.messageCount=0; modem.errorCount=0; Serial.println("Statistics cleared"); }
   else if (cmdLine.startsWith("get conf")) {
     Serial.print("Center Frequency: "); Serial.print(modem.centerFreq,5); Serial.println(" MHz");
     Serial.print("Rx Frequency Offset: "); Serial.print(modem.rxOffset,3); Serial.println(" kHz");
