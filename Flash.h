@@ -17,7 +17,7 @@ void getFlash() {
 void readFlash() {
   flash.begin("SX1278FSK",true);
   modem.stopSequencer();
-  modem.setFrequency(flash.getDouble("centerFreq",434),flash.getDouble("rxOffset",0));
+  modem.setFrequency(flash.getDouble("centerFreq",439.9875),flash.getDouble("rxOffset",7.446));
   modem.setBitrate(flash.getDouble("bitrate",1.2));
   modem.setShift(flash.getDouble("shift",4.5));
   modem.setRxBandwidth(flash.getDouble("rxBandwidth",5.2));
