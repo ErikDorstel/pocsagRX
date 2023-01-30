@@ -285,7 +285,7 @@ class SX1278FSK {
 
     void pocsagWorker() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
-        if (isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); error=0; ric=0; dau=""; message=""; messageCount++; }
+        if (isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); messageCount++; }
         restartRx(false); upTime++;
         if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
 
@@ -295,6 +295,7 @@ class SX1278FSK {
         if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected."); }
         if (debug) { printRx(); }
         if (isBOS) { isDAU=true; } else { isDAU=false; }
+        error=0; ric=0; function=0; dau=""; message="";
         timerRx=millis()+1000; }
 
       if (available()) {

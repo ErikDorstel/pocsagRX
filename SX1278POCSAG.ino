@@ -2,6 +2,7 @@
 
 SX1278FSK modem(false,0);
 
+#include "WLAN.h"
 #include "CLI.h"
 
 void messageReceived(uint8_t error, uint32_t ric, char function, String dau, String message) {
@@ -14,6 +15,7 @@ void messageReceived(uint8_t error, uint32_t ric, char function, String dau, Str
 void setup() {
   Serial.begin(115200);
   SPI.begin(SCK, MISO, MOSI, CS);
+  initWLAN();
   modem.initChip();
   modem.beginPOCSAG(messageReceived);
   readFlash(); }

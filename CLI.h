@@ -17,6 +17,10 @@ void help() {
   Serial.println("set rxbw [2.6-250|auto]");
   Serial.println("set afcbw [2.6-250|auto]");
   Serial.println("set bos");
+  Serial.println("set ssid [SSID]");
+  Serial.println("set secret [Secret]");
+  Serial.println("set url [URL]");
+  Serial.println("connect wlan");
   Serial.println("restart rx");
   Serial.println("restart cpu");
   Serial.println("get flash");
@@ -45,7 +49,10 @@ void doParse() {
     Serial.print("Shift Frequency: +/- "); Serial.print(modem.shift*1000,0); Serial.println(" Hz");
     Serial.print("Rx Bandwidth: "); Serial.print(modem.rxBandwidth,1); Serial.println(" kHz");
     Serial.print("AFC Bandwidth: "); Serial.print(modem.afcBandwidth,1); Serial.println(" kHz");
-    Serial.print("BOS Mode: "); Serial.println(modem.isBOS); }
+    Serial.print("BOS Mode: "); Serial.println(modem.isBOS);
+    Serial.print("WLAN SSID: "); Serial.println(wlanSSID);
+    Serial.print("WLAN Secret: "); if (wlanSecret!="") { Serial.println("xxxx"); } else { Serial.println(); }
+    Serial.print("Gateway URL: "); Serial.println(gwURL); }
   else if (cmdLine.startsWith("get register")) { modem.regDump(); }
   else if (cmdLine.startsWith("set freq")) { modem.stopSequencer(); modem.setFrequency(value.toDouble()); modem.startSequencer(); modem.restartRx(true); }
   else if (cmdLine.startsWith("set offset")) { if (value!="auto") { modem.rxOffset=value.toDouble(); }
@@ -55,6 +62,10 @@ void doParse() {
   else if (cmdLine.startsWith("set rxbw")) { if (value=="auto") { modem.setRxBwAuto(); } else { modem.setRxBandwidth(value.toDouble()); } }
   else if (cmdLine.startsWith("set afcbw")) { if (value=="auto") { modem.setAfcBwAuto(); } else { modem.setAfcBandwidth(value.toDouble()); } }
   else if (cmdLine.startsWith("set bos")) { modem.isBOS=!modem.isBOS; Serial.print("BOS Mode: "); Serial.println(modem.isBOS); }
+  else if (cmdLine.startsWith("set ssid")) { wlanSSID=value; }
+  else if (cmdLine.startsWith("set secret")) { wlanSecret=value; }
+  else if (cmdLine.startsWith("set url")) { gwURL=value; }
+  else if (cmdLine.startsWith("connect wlan")) { connectWLAN(); }
   else if (cmdLine.startsWith("restart rx")) { modem.restartRx(true); Serial.println("Rx and PLL restarted"); }
   else if (cmdLine.startsWith("restart cpu")) { ESP.restart(); }
   else if (cmdLine.startsWith("get flash")) { getFlash(); }
