@@ -2,6 +2,11 @@
 #define SX1278_WLAN_H
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+
+WiFiClientSecure *client=new WiFiClientSecure;
+HTTPClient https;
 
 String wlanSSID="";
 String wlanSecret="";
@@ -20,5 +25,26 @@ void initWLAN() {
 void connectWLAN() {
   WiFi.disconnect();
   if (wlanSSID!="" && wlanSecret!="") { WiFi.begin(wlanSSID.c_str(),wlanSecret.c_str()); } }
+
+void postHTTPS(String postData) {
+  if (WiFi.status()==WL_CONNECTED && gwURL!="" && postData!="") {
+    client->setInsecure();
+    https.begin(*client,gwURL);
+    https.POST(postData);
+    https.end(); } }
+
+String urlencode(String value) {
+  String result=""; char x; char x0; char x1;
+  for (int idx=0;idx<value.length();idx++) {
+    x=value.charAt(idx);
+    if (x==' ') { result+='+'; }
+    else if (isalnum(x)) { result+=x; }
+    else { x1=(x & 0xf)+'0';
+      if ((x & 0xf)>9) { x1=(x & 0xf)-10+'A'; }
+      x=(x>>4)&0xf; x0=x+'0';
+      if (x>9) { x0=x-10+'A'; }
+      result+='%'; result+=x0; result+=x1; }
+    yield(); }
+  return result; }
 
 #endif

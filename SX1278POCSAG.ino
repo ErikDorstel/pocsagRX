@@ -6,11 +6,12 @@ SX1278FSK modem(false,0);
 #include "CLI.h"
 
 void messageReceived(uint8_t error, uint32_t ric, char function, String dau, String message) {
-  Serial.print(error); Serial.print(" ");
-  Serial.print(ric); Serial.print(" ");
-  Serial.print(function); Serial.print(" ");
-  Serial.print(dau); Serial.print(" ");
-  Serial.println(message); }
+  String postValue="error=" + String(error);
+  postValue+="&ric=" + String(ric);
+  postValue+="&function=" + String(function);
+  postValue+="&dau=" + urlencode(String(function));
+  postValue+="&message=" + urlencode(String(message));
+  postHTTPS(postValue); Serial.println(postValue); }
 
 void setup() {
   Serial.begin(115200);

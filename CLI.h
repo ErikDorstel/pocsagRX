@@ -19,7 +19,7 @@ void help() {
   Serial.println("set bos");
   Serial.println("set ssid [SSID]");
   Serial.println("set secret [Secret]");
-  Serial.println("set url [URL]");
+  Serial.println("set gwurl [https://foo.de/foo]");
   Serial.println("connect wlan");
   Serial.println("restart rx");
   Serial.println("restart cpu");
@@ -38,9 +38,10 @@ void doParse() {
   else if (cmdLine.startsWith("get version")) { modem.printChip(); }
   else if (cmdLine.startsWith("get stat")) { modem.printRx();
     Serial.print("Messages received: "); Serial.print(modem.messageCount);
-    Serial.print("   Errors occured: "); Serial.print(modem.errorCount);
-    Serial.print("   Uptime: "); Serial.print(modem.upTime/86400); Serial.print(" days ");
-    Serial.print((double)(modem.upTime%86400)/3600.0,2); Serial.println(" hours"); }
+    Serial.print("   Errors occured: "); Serial.println(modem.errorCount);
+    Serial.print("Uptime: "); Serial.print(modem.upTime/86400); Serial.print(" days ");
+    Serial.print((double)(modem.upTime%86400)/3600.0,2); Serial.print(" hours");
+    Serial.print("   WLAN Status: "); Serial.println(WiFi.status()); }
   else if (cmdLine.startsWith("clear stat")) { modem.messageCount=0; modem.errorCount=0; Serial.println("Statistics cleared"); }
   else if (cmdLine.startsWith("get conf")) {
     Serial.print("Center Frequency: "); Serial.print(modem.centerFreq,5); Serial.println(" MHz");
@@ -64,7 +65,7 @@ void doParse() {
   else if (cmdLine.startsWith("set bos")) { modem.isBOS=!modem.isBOS; Serial.print("BOS Mode: "); Serial.println(modem.isBOS); }
   else if (cmdLine.startsWith("set ssid")) { wlanSSID=value; }
   else if (cmdLine.startsWith("set secret")) { wlanSecret=value; }
-  else if (cmdLine.startsWith("set url")) { gwURL=value; }
+  else if (cmdLine.startsWith("set gwurl")) { gwURL=value; }
   else if (cmdLine.startsWith("connect wlan")) { connectWLAN(); }
   else if (cmdLine.startsWith("restart rx")) { modem.restartRx(true); Serial.println("Rx and PLL restarted"); }
   else if (cmdLine.startsWith("restart cpu")) { ESP.restart(); }
