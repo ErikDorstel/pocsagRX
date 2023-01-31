@@ -4,11 +4,19 @@
 #include <SPI.h>
 #include "SX1278ISR.h"
 
-#define SCK 18
-#define MISO 19
-#define MOSI 23
-#define CS 5
-#define RST 16
+#ifndef HeltecLoRaV2
+  #define SCK 18
+  #define MISO 19
+  #define MOSI 23
+  #define CS 5
+  #define RST 16
+#else
+  #define SCK 5
+  #define MISO 19
+  #define MOSI 27
+  #define CS 18
+  #define RST 14
+#endif
 
 #define regOpMode 0x1
 #define regBrMSB 0x2
@@ -61,6 +69,7 @@ class SX1278FSK {
   public:
     bool monitorRx;
     uint8_t debug;
+    bool needCR=false;
     bool isBOS;
     double centerFreq;
     double rxOffset;
@@ -382,7 +391,6 @@ class SX1278FSK {
 
   private:
     uint32_t timerRx;
-    bool needCR=false;
     bool isText;
     bool isROT1;
     bool isIdle;

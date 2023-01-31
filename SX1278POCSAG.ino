@@ -1,3 +1,5 @@
+//#define HeltecLoRaV2
+
 #include "SX1278.h"
 
 SX1278FSK modem(false,0);
@@ -11,7 +13,7 @@ void messageReceived(uint8_t error, uint32_t ric, char function, String dau, Str
   postValue+="&function=" + String(function);
   postValue+="&dau=" + urlencode(String(function));
   postValue+="&message=" + urlencode(String(message));
-  postHTTPS(postValue); Serial.println(postValue); }
+  postHTTPS(postValue); }
 
 void setup() {
   Serial.begin(115200);

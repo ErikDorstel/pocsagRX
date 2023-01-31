@@ -11,10 +11,11 @@ HTTPClient https;
 String wlanSSID="";
 String wlanSecret="";
 String gwURL="";
+uint32_t httpStatus;
 
-void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) { Serial.println("WLAN AP " + WiFi.SSID() + " connected"); }
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (modem.needCR) { modem.needCR=false; Serial.println(); } Serial.println("WLAN AP " + WiFi.SSID() + " connected"); }
 
-void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { Serial.println("WLAN AP disconnected"); }
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (modem.needCR) { modem.needCR=false; Serial.println(); } Serial.println("WLAN AP disconnected"); }
 
 void initWLAN() {
   WiFi.mode(WIFI_STA);
@@ -30,7 +31,11 @@ void postHTTPS(String postData) {
   if (WiFi.status()==WL_CONNECTED && gwURL!="" && postData!="") {
     client->setInsecure();
     https.begin(*client,gwURL);
-    https.POST(postData);
+    httpStatus=https.POST(postData);
+    if (modem.debug) {
+      if (modem.needCR) { modem.needCR=false; Serial.println(); }
+      if (modem.debug>1) { Serial.print("    HTTP POST: "); Serial.println(postData); }
+      Serial.print("    HTTP Status: "); Serial.println(httpStatus); }
     https.end(); } }
 
 String urlencode(String value) {

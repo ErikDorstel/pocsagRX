@@ -21,6 +21,7 @@ void help() {
   Serial.println("set secret [Secret]");
   Serial.println("set gwurl [https://foo.de/foo]");
   Serial.println("connect wlan");
+  Serial.println("clear wlan");
   Serial.println("restart rx");
   Serial.println("restart cpu");
   Serial.println("get flash");
@@ -41,7 +42,8 @@ void doParse() {
     Serial.print("   Errors occured: "); Serial.println(modem.errorCount);
     Serial.print("Uptime: "); Serial.print(modem.upTime/86400); Serial.print(" days ");
     Serial.print((double)(modem.upTime%86400)/3600.0,2); Serial.print(" hours");
-    Serial.print("   WLAN Status: "); Serial.println(WiFi.status()); }
+    Serial.print("   WLAN Status: "); Serial.print(WiFi.status());
+    Serial.print("   HTTP Status: "); Serial.println(httpStatus); }
   else if (cmdLine.startsWith("clear stat")) { modem.messageCount=0; modem.errorCount=0; Serial.println("Statistics cleared"); }
   else if (cmdLine.startsWith("get conf")) {
     Serial.print("Center Frequency: "); Serial.print(modem.centerFreq,5); Serial.println(" MHz");
@@ -67,6 +69,7 @@ void doParse() {
   else if (cmdLine.startsWith("set secret")) { wlanSecret=value; }
   else if (cmdLine.startsWith("set gwurl")) { gwURL=value; }
   else if (cmdLine.startsWith("connect wlan")) { connectWLAN(); }
+  else if (cmdLine.startsWith("clear wlan")) { wlanSSID=""; wlanSecret=""; gwURL=""; httpStatus=0; connectWLAN(); }
   else if (cmdLine.startsWith("restart rx")) { modem.restartRx(true); Serial.println("Rx and PLL restarted"); }
   else if (cmdLine.startsWith("restart cpu")) { ESP.restart(); }
   else if (cmdLine.startsWith("get flash")) { getFlash(); }
