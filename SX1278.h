@@ -56,7 +56,7 @@
 #define regDioMap2 0x41
 #define regChipVersion 0x42
 
-#define gainValues {0,0,-6,-12,-24,-36,-48,0}
+const double gainValues[8]={0,0,-6,-12,-24,-36,-48,0};
 
 const double bwValues[21]=  { 2.6, 3.1, 3.9, 5.2, 6.3, 7.8, 10.4, 12.5, 15.6, 20.8, 25, 31.3, 41.7, 50, 62.5, 83.3, 100, 125, 166.7, 200, 250 };
 const uint8_t bwIntegers[21]={ 23,  15,   7,  22,  14,   6,   21,   13,    5,   20, 12,    4,    19,11,    3,   18,  10,   2,    17,   9,   1 };
@@ -80,6 +80,7 @@ class SX1278FSK {
     uint32_t errorCount;
     uint32_t messageCount;
     uint32_t upTime;
+    String esp32ID;
 
     SX1278FSK(bool _monitorRx=false, uint8_t _debug=0) {
       monitorRx=_monitorRx; debug=_debug; }
@@ -119,7 +120,8 @@ class SX1278FSK {
 
     void initChip() {
       pinMode(RST, OUTPUT); digitalWrite(RST, HIGH);
-      delay(25); initSPI(); resetChip(); printChip(); }
+      delay(25); initSPI(); resetChip(); printChip();
+      esp32ID=String(ESP.getEfuseMac(),HEX); }
 
     void regDump() {
       for (uint8_t reg=0x00;reg<=0x42;reg++) { uint8_t value=readSPI(reg);
@@ -239,7 +241,7 @@ class SX1278FSK {
       int16_t value=(valueMSB<<8)|valueLSB;
       return (double)value/16.384; }
 
-    double getGain() { double gain[8]=gainValues; return gain[getReg(regRxLna,7,5)]; }
+    double getGain() { return gainValues[getReg(regRxLna,7,5)]; }
 
     void setRssiTresh(int tresh) {
       writeSPI(regRssiTresh,(uint8_t)(tresh*-2)); }
@@ -268,7 +270,7 @@ class SX1278FSK {
       Serial.print("   AFC: "); Serial.print(getAFC(),3); Serial.print(" kHz");
       Serial.print("   FEI: "); Serial.print(getFEI(),3); Serial.println(" kHz"); }
 
-    void beginPOCSAG(void (*_callback)(uint8_t,uint32_t,char,String,String)=nullptr) {
+    void beginPOCSAG(void (*_callback)(double,uint8_t,uint32_t,char,String,String)=nullptr) {
       callback=_callback;
       setModeFskRxCont();
       initDioIf();
@@ -294,7 +296,7 @@ class SX1278FSK {
 
     void pocsagWorker() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
-        if (isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); messageCount++; }
+        if (isMessageRun) { isMessageRun=false; callback(rssi,error,ric,function,dau,message); messageCount++; }
         restartRx(false); upTime++;
         if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
 
@@ -304,6 +306,7 @@ class SX1278FSK {
         if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected."); }
         if (debug) { printRx(); }
         if (isBOS) { isDAU=true; } else { isDAU=false; }
+        rssi=getRSSI()-getGain();
         error=0; ric=0; function=0; dau=""; message="";
         timerRx=millis()+1000; }
 
@@ -332,7 +335,7 @@ class SX1278FSK {
 
             if (checkParity(batch[idx])) { parity=true; } else { parity=false; }
 
-            if (isAddress && isMessageRun) { isMessageRun=false; callback(error,ric,function,dau,message); error=0; message=""; messageCount++; }
+            if (isAddress && isMessageRun) { isMessageRun=false; callback(rssi,error,ric,function,dau,message); error=0; message=""; messageCount++; }
 
             if ((!parity) && (!isIdle)) { error++; errorCount++; }
 
@@ -403,10 +406,11 @@ class SX1278FSK {
     String dau="";
     String message="";
     bool parity;
+    double rssi;
     uint8_t text=0;
     uint8_t textPos=0;
     uint8_t number=0;
     uint8_t numberPos=0;
-    void (*callback)(uint8_t,uint32_t,char,String,String)=nullptr; };
+    void (*callback)(double,uint8_t,uint32_t,char,String,String)=nullptr; };
 
 #endif

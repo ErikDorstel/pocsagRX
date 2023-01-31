@@ -7,12 +7,14 @@ SX1278FSK modem(false,0);
 #include "WLAN.h"
 #include "CLI.h"
 
-void messageReceived(uint8_t error, uint32_t ric, char function, String dau, String message) {
-  String postValue="error=" + String(error);
+void messageReceived(double rssi,uint8_t error, uint32_t ric, char function, String dau, String message) {
+  String postValue="dme=" + modem.esp32ID;
+  postValue+="&rssi=" + urlencode(String(rssi,1));
+  postValue+="&error=" + String(error);
   postValue+="&ric=" + String(ric);
   postValue+="&function=" + String(function);
-  postValue+="&dau=" + urlencode(String(function));
-  postValue+="&message=" + urlencode(String(message));
+  postValue+="&dau=" + urlencode(dau);
+  postValue+="&message=" + urlencode(message);
   postHTTPS(postValue); }
 
 void setup() {
