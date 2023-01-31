@@ -43,7 +43,7 @@ SX1278 and ESP32 based POCSAG receiver
   * Ferror means the maximum center frequency offset error of the SX1278 module
   * the auto function uses the above formula
 #### define statements for the SX1278 based HELTEC LoRa module
-* activate the HeltecLoRaV2 define statement in SX1278POCSAG.ino to use this GPIO pins
+activate the HeltecLoRaV2 define statement in SX1278POCSAG.ino to use this GPIO pins
 
     // SX1278.h
     #define SCK 5
