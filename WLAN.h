@@ -13,9 +13,9 @@ String wlanSecret="";
 String gwURL="";
 uint32_t httpStatus;
 
-void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (modem.needCR) { modem.needCR=false; Serial.println(); } Serial.println("WLAN AP " + WiFi.SSID() + " connected"); }
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (modem.needCR) { modem.needCR=false; Serial.println(); } Serial.println("WLAN AP: " + WiFi.SSID() + " connected"); }
 
-void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (modem.needCR) { modem.needCR=false; Serial.println(); } Serial.println("WLAN AP disconnected"); }
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (modem.needCR) { modem.needCR=false; Serial.println(); } Serial.println("WLAN AP: disconnected"); }
 
 void initWLAN() {
   WiFi.mode(WIFI_STA);
