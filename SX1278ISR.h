@@ -16,16 +16,16 @@
 volatile bool detectDIO0Flag=false;
 volatile bool detectDIO3Flag=false;
 volatile uint8_t ringBuffer[128];
-volatile uint8_t bufferMask=128;
 volatile uint8_t writePtr=0;
-volatile uint8_t readPtr=0;
+uint8_t readPtr=0;
 
 void IRAM_ATTR dio0ISR() { detectDIO0Flag=true; }
 
 void IRAM_ATTR dio1ISR() {
-  if (digitalRead(DIO2)==LOW) { ringBuffer[writePtr]|=bufferMask; }
+  static uint8_t buffer=0; static uint8_t bufferMask=128;
+  if (digitalRead(DIO2)==LOW) { buffer|=bufferMask; }
   bufferMask>>=1; if (bufferMask==0) {
-    bufferMask=128; writePtr++; writePtr%=128; ringBuffer[writePtr]=0; } }
+    ringBuffer[writePtr]=buffer; buffer=0; bufferMask=128; writePtr++; writePtr%=128; } }
 
 void IRAM_ATTR dio3ISR() { detectDIO3Flag=true; }
 
