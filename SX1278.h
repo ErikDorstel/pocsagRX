@@ -71,6 +71,7 @@ class SX1278FSK {
     uint8_t debug;
     bool needCR=false;
     bool isBOS;
+    String daufilter="";
     double centerFreq;
     double rxOffset;
     double bitrate;
@@ -222,13 +223,13 @@ class SX1278FSK {
       attachInterrupt(DIO3,dio3ISR,RISING); }
 
     bool available() {
-      portENTER_CRITICAL(&mux);
-      if (writePtr==readPtr) { portEXIT_CRITICAL(&mux); return false; } else { portEXIT_CRITICAL(&mux); return true; } }
+      portENTER_CRITICAL(&mux1);
+      if (writePtr==readPtr) { portEXIT_CRITICAL(&mux1); return false; } else { portEXIT_CRITICAL(&mux1); return true; } }
 
     uint8_t read() {
-      portENTER_CRITICAL(&mux);
-      uint8_t lastByte=ringBuffer[readPtr];
-      portEXIT_CRITICAL(&mux);
+      portENTER_CRITICAL(&mux1);
+        uint8_t lastByte=ringBuffer[readPtr];
+      portEXIT_CRITICAL(&mux1);
       readPtr++; readPtr%=128; return lastByte; }
 
     void restartRx(bool withPLL) {
@@ -306,7 +307,8 @@ class SX1278FSK {
         restartRx(false); upTime++;
         if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
 
-      if (detectDIO0Flag) { detectDIO0Flag=false;
+      portENTER_CRITICAL(&mux0);
+      if (detectDIO0Flag) { detectDIO0Flag=false; portEXIT_CRITICAL(&mux0);
         if (needCR && (debug || rxOffset==0)) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.println("Preamble Detected!"); }
         if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected."); }
@@ -315,6 +317,7 @@ class SX1278FSK {
         rssi=getRSSI()-getGain();
         error=0; ric=0; function=0; dau=""; message="";
         timerRx=millis()+1000; }
+      else { portEXIT_CRITICAL(&mux0); }
 
       if (available()) {
         uint8_t rxByte=read();

@@ -44,8 +44,8 @@ String urlencode(String value) {
     x=value.charAt(idx);
     if (x==' ') { result+='+'; }
     else if (isalnum(x)) { result+=x; }
-    else { x1=(x & 0xf)+'0';
-      if ((x & 0xf)>9) { x1=(x & 0xf)-10+'A'; }
+    else { x1=(x&0xf)+'0';
+      if ((x & 0xf)>9) { x1=(x&0xf)-10+'A'; }
       x=(x>>4)&0xf; x0=x+'0';
       if (x>9) { x0=x-10+'A'; }
       result+='%'; result+=x0; result+=x1; }

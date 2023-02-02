@@ -12,6 +12,7 @@ void getFlash() {
   Serial.print("Rx Bandwidth: "); Serial.print(flash.getDouble("rxBandwidth",5.2),1); Serial.println(" kHz");
   Serial.print("AFC Bandwidth: "); Serial.print(flash.getDouble("afcBandwidth",25),1); Serial.println(" kHz");
   Serial.print("BOS Mode: "); Serial.println(flash.getBool("isBOS",false));
+  Serial.print("DAU Filter: "); Serial.println(flash.getString("daufilter",""));
   Serial.print("WLAN SSID: "); Serial.println(flash.getString("wlanSSID",""));
   Serial.print("WLAN Secret: "); if (flash.getString("wlanSecret","")!="") { Serial.println("xxxx"); } else { Serial.println(); }
   Serial.print("Gateway URL: "); Serial.println(flash.getString("gwURL",""));
@@ -28,6 +29,7 @@ void readFlash() {
   modem.startSequencer();
   modem.restartRx(true);
   modem.isBOS=flash.getBool("isBOS",false);
+  modem.daufilter=flash.getString("daufilter","");
   wlanSSID=flash.getString("wlanSSID","");
   wlanSecret=flash.getString("wlanSecret","");
   gwURL=flash.getString("gwURL","");
@@ -44,6 +46,7 @@ void writeFlash() {
   flash.putDouble("rxBandwidth",modem.rxBandwidth);
   flash.putDouble("afcBandwidth",modem.afcBandwidth);
   flash.putBool("isBOS",modem.isBOS);
+  flash.putString("daufilter",modem.daufilter);
   flash.putString("wlanSSID",wlanSSID);
   flash.putString("wlanSecret",wlanSecret);
   flash.putString("gwURL",gwURL);
