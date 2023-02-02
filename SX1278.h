@@ -221,9 +221,15 @@ class SX1278FSK {
       attachInterrupt(DIO1,dio1ISR,RISING);
       attachInterrupt(DIO3,dio3ISR,RISING); }
 
-    bool available() { if (writePtr==readPtr) { return false; } else { return true; } }
+    bool available() {
+      portENTER_CRITICAL(&mux);
+      if (writePtr==readPtr) { portEXIT_CRITICAL(&mux); return false; } else { portEXIT_CRITICAL(&mux); return true; } }
 
-    uint8_t read() { uint8_t lastByte=ringBuffer[readPtr]; readPtr++; readPtr%=128; return lastByte; }
+    uint8_t read() {
+      portENTER_CRITICAL(&mux);
+      uint8_t lastByte=ringBuffer[readPtr];
+      portEXIT_CRITICAL(&mux);
+      readPtr++; readPtr%=128; return lastByte; }
 
     void restartRx(bool withPLL) {
       if (!withPLL) { setReg(regRxCfg,6,6,1); }
