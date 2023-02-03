@@ -19,27 +19,27 @@ volatile uint8_t ringBuffer[128];
 volatile uint8_t writePtr=0;
 uint8_t readPtr=0;
 
-portMUX_TYPE mux0=portMUX_INITIALIZER_UNLOCKED;
-portMUX_TYPE mux1=portMUX_INITIALIZER_UNLOCKED;
-portMUX_TYPE mux3=portMUX_INITIALIZER_UNLOCKED;
+portMUX_TYPE mutexDIO0=portMUX_INITIALIZER_UNLOCKED;
+portMUX_TYPE mutexDIO1=portMUX_INITIALIZER_UNLOCKED;
+portMUX_TYPE mutexDIO3=portMUX_INITIALIZER_UNLOCKED;
 
 void IRAM_ATTR dio0ISR() {
-  portENTER_CRITICAL_ISR(&mux0);
+  portENTER_CRITICAL_ISR(&mutexDIO0);
     detectDIO0Flag=true;
-  portEXIT_CRITICAL_ISR(&mux0); }
+  portEXIT_CRITICAL_ISR(&mutexDIO0); }
 
 void IRAM_ATTR dio1ISR() {
   static uint8_t buffer=0; static uint8_t bufferMask=128;
   if (digitalRead(DIO2)==LOW) { buffer|=bufferMask; }
   bufferMask>>=1; if (bufferMask==0) {
-    portENTER_CRITICAL_ISR(&mux1);
+    portENTER_CRITICAL_ISR(&mutexDIO1);
       ringBuffer[writePtr]=buffer; writePtr++; writePtr%=128;
-    portEXIT_CRITICAL_ISR(&mux1);
+    portEXIT_CRITICAL_ISR(&mutexDIO1);
     buffer=0; bufferMask=128; } }
 
 void IRAM_ATTR dio3ISR() {
-  portENTER_CRITICAL_ISR(&mux3);
+  portENTER_CRITICAL_ISR(&mutexDIO3);
     detectDIO3Flag=true;
-  portEXIT_CRITICAL_ISR(&mux3); }
+  portEXIT_CRITICAL_ISR(&mutexDIO3); }
 
 #endif

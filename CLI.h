@@ -17,7 +17,7 @@ void help() {
   Serial.println("set rxbw [2.6-250|auto]");
   Serial.println("set afcbw [2.6-250|auto]");
   Serial.println("set bos");
-  Serial.println("set daufilter [filter]");
+  Serial.println("set daufilter [Filter]");
   Serial.println("set ssid [SSID]");
   Serial.println("set secret [Secret]");
   Serial.println("set gwurl [https://foo.de/foo]");

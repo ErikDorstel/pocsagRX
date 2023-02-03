@@ -223,13 +223,13 @@ class SX1278FSK {
       attachInterrupt(DIO3,dio3ISR,RISING); }
 
     bool available() {
-      portENTER_CRITICAL(&mux1);
-      if (writePtr==readPtr) { portEXIT_CRITICAL(&mux1); return false; } else { portEXIT_CRITICAL(&mux1); return true; } }
+      portENTER_CRITICAL(&mutexDIO1);
+      if (writePtr==readPtr) { portEXIT_CRITICAL(&mutexDIO1); return false; } else { portEXIT_CRITICAL(&mutexDIO1); return true; } }
 
     uint8_t read() {
-      portENTER_CRITICAL(&mux1);
+      portENTER_CRITICAL(&mutexDIO1);
         uint8_t lastByte=ringBuffer[readPtr];
-      portEXIT_CRITICAL(&mux1);
+      portEXIT_CRITICAL(&mutexDIO1);
       readPtr++; readPtr%=128; return lastByte; }
 
     void restartRx(bool withPLL) {
@@ -307,8 +307,8 @@ class SX1278FSK {
         restartRx(false); upTime++;
         if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
 
-      portENTER_CRITICAL(&mux0);
-      if (detectDIO0Flag) { detectDIO0Flag=false; portEXIT_CRITICAL(&mux0);
+      portENTER_CRITICAL(&mutexDIO0);
+      if (detectDIO0Flag) { detectDIO0Flag=false; portEXIT_CRITICAL(&mutexDIO0);
         if (needCR && (debug || rxOffset==0)) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.println("Preamble Detected!"); }
         if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected."); }
@@ -317,7 +317,7 @@ class SX1278FSK {
         rssi=getRSSI()-getGain();
         error=0; ric=0; function=0; dau=""; message="";
         timerRx=millis()+1000; }
-      else { portEXIT_CRITICAL(&mux0); }
+      else { portEXIT_CRITICAL(&mutexDIO0); }
 
       if (available()) {
         uint8_t rxByte=read();
@@ -343,6 +343,8 @@ class SX1278FSK {
             if (!(batch[idx]&(1<<31))) { isAddress=true; } else { isAddress=false; }
 
             if (checkParity(batch[idx])) { parity=true; } else { parity=false; }
+
+            if (isBOS && dau!="") { if (daufilter!="" && (!dau.startsWith(daufilter))) { break; } }
 
             if (isAddress && isMessageRun) { isMessageRun=false; callback(rssi,error,ric,function,dau,message); error=0; message=""; messageCount++; }
 
