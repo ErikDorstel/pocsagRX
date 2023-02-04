@@ -9,8 +9,10 @@ SX1278 and ESP32 based POCSAG receiver
 * also works with HELTEC SX1278 based LoRa module
   * activate the HeltecLoRaV2 define statement in SX1278POCSAG.ino to use this module
 * serial console Command Line Interface for configuration and debugging
+* 3 levels of debugging
 * write/read configuration to/from flash
-* german BOS mode and ASCII codes
+* german BOS mode and DAU filter
+* german ASCII codes
 * decoding of ROT1 encoded messages
 * wlan based https gateway to forwarding the messages
 #### SPI bus
@@ -42,17 +44,13 @@ SX1278 and ESP32 based POCSAG receiver
   * calculation: AFCbandwidth >= 2*(Fshift+(bitrate/2))+Ferror
   * Ferror means the maximum center frequency offset error of the SX1278 module
   * the auto function uses the above formula
-#### define statements for the SX1278 based HELTEC LoRa module
+#### define statement for the SX1278 based HELTEC LoRa module
 activate the HeltecLoRaV2 define statement in SX1278POCSAG.ino to use this GPIO pins
-
-    // SX1278.h
-    #define SCK 5
-    #define MISO 19
-    #define MOSI 27
-    #define CS 18
-    #define RST 14
-    // SX1278ISR.h
-    #define DIO0 26
-    #define DIO1 35
-    #define DIO2 34
-    #define DIO3 32 // currently not in use
+* GPIO 19 - MISO
+* GPIO 27 - MOSI
+* GPIO 5 - SCLK
+* GPIO 18 - CS
+* GPIO 14 - RESET
+* GPIO 26 - DIO0
+* GPIO 35 - DIO1
+* GPIO 34 - DIO2
