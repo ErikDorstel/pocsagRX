@@ -126,7 +126,7 @@ class SX1278FSK {
 
     void regDump() {
       for (uint8_t reg=0x00;reg<=0x42;reg++) { uint8_t value=readSPI(reg);
-        Serial.print("0x"); Serial.print(reg,HEX); Serial.print(": 0x"); Serial.print(value,HEX); Serial.print("     "); Serial.print(value,DEC); Serial.print("     0b"); Serial.println(value,BIN); } }
+        Serial.printf("0x%02x:     0x%02x     %3u     0b",reg,value,value); Serial.println(value,BIN); } }
 
     void setFrequency(double _centerFreq, double _rxOffset=0) {
       centerFreq=_centerFreq; rxOffset=_rxOffset;
@@ -352,11 +352,11 @@ class SX1278FSK {
 
             if (debug>2) {
               if (needCR) { needCR=false; Serial.println(); }
-              if (isIdle) { Serial.print("Idle "); }
-              if (isAddress) { Serial.print("Address "); } else { Serial.print("Message "); }
-              for (int8_t bit=31;bit>=0;bit--) {
-                if (bit==30 || bit==10 || bit==0) { Serial.print(" "); }
+              Serial.printf("%02u: ",idx); for (int8_t bit=31;bit>=0;bit--) {
+                if (bit==30 || (isAddress && bit==12) || bit==10 || bit==0) { Serial.print(" "); }
                 if (batch[idx]&(1<<bit)) { Serial.print("1"); } else { Serial.print("0"); } }
+              if (isIdle) { Serial.print(" Idle"); }
+              if (isAddress) { Serial.print(" Address"); } else { Serial.print(" Message"); }
               if (parity) { Serial.println(" Parity Ok"); } else { Serial.println(" Parity Failed"); } }
 
             if (isAddress && (!isIdle)) {
