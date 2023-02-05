@@ -217,20 +217,20 @@ class SX1278FSK {
       setReg(regDioMap1,3,2,0); // DIO2 Mapping 0:Data
       setReg(regDioMap1,1,0,0); // DIO3 Mapping 0:Timeout 1:RSSI/Preamble Detect
       setReg(regDioMap2,0,0,1); // Map Detect Interrupt 0:RSSI 1:Preamble
+      queueDIO1=xQueueCreate(128,sizeof(uint8_t));
       pinMode(DIO0, INPUT); pinMode(DIO1, INPUT); pinMode(DIO2, INPUT); pinMode(DIO3, INPUT);
       attachInterrupt(DIO0,dio0ISR,RISING);
       attachInterrupt(DIO1,dio1ISR,RISING);
       attachInterrupt(DIO3,dio3ISR,RISING); }
 
     bool available() {
-      portENTER_CRITICAL(&mutexDIO1);
-      if (writePtr==readPtr) { portEXIT_CRITICAL(&mutexDIO1); return false; } else { portEXIT_CRITICAL(&mutexDIO1); return true; } }
+      uint8_t lastByte;
+      return xQueuePeekFromISR(queueDIO1,&lastByte); }
 
     uint8_t read() {
-      portENTER_CRITICAL(&mutexDIO1);
-        uint8_t lastByte=ringBuffer[readPtr];
-      portEXIT_CRITICAL(&mutexDIO1);
-      readPtr++; readPtr%=128; return lastByte; }
+      uint8_t lastByte;
+      xQueueReceiveFromISR(queueDIO1,&lastByte,NULL);
+      return lastByte; }
 
     void restartRx(bool withPLL) {
       if (!withPLL) { setReg(regRxCfg,6,6,1); }

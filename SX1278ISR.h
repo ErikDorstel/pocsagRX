@@ -15,12 +15,9 @@
 
 volatile bool detectDIO0Flag=false;
 volatile bool detectDIO3Flag=false;
-volatile uint8_t ringBuffer[128];
-volatile uint8_t writePtr=0;
-uint8_t readPtr=0;
 
 portMUX_TYPE mutexDIO0=portMUX_INITIALIZER_UNLOCKED;
-portMUX_TYPE mutexDIO1=portMUX_INITIALIZER_UNLOCKED;
+QueueHandle_t queueDIO1;
 portMUX_TYPE mutexDIO3=portMUX_INITIALIZER_UNLOCKED;
 
 void IRAM_ATTR dio0ISR() {
@@ -32,9 +29,7 @@ void IRAM_ATTR dio1ISR() {
   static uint8_t buffer=0; static uint8_t bufferMask=128;
   if (digitalRead(DIO2)==LOW) { buffer|=bufferMask; }
   bufferMask>>=1; if (bufferMask==0) {
-    portENTER_CRITICAL_ISR(&mutexDIO1);
-      ringBuffer[writePtr]=buffer; writePtr++; writePtr%=128;
-    portEXIT_CRITICAL_ISR(&mutexDIO1);
+    xQueueSendFromISR(queueDIO1,&buffer,NULL);
     buffer=0; bufferMask=128; } }
 
 void IRAM_ATTR dio3ISR() {
