@@ -217,7 +217,7 @@ class SX1278FSK {
       setReg(regDioMap1,3,2,0); // DIO2 Mapping 0:Data
       setReg(regDioMap1,1,0,0); // DIO3 Mapping 0:Timeout 1:RSSI/Preamble Detect
       setReg(regDioMap2,0,0,1); // Map Detect Interrupt 0:RSSI 1:Preamble
-      queueDIO1=xQueueCreate(128,sizeof(uint8_t));
+      queueDIO1=xQueueCreate(256,sizeof(uint8_t));
       pinMode(DIO0, INPUT); pinMode(DIO1, INPUT); pinMode(DIO2, INPUT); pinMode(DIO3, INPUT);
       attachInterrupt(DIO0,dio0ISR,RISING);
       attachInterrupt(DIO1,dio1ISR,RISING);
@@ -311,7 +311,7 @@ class SX1278FSK {
       if (detectDIO0Flag) { detectDIO0Flag=false; portEXIT_CRITICAL(&mutexDIO0);
         if (needCR && (debug || rxOffset==0)) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.println("Preamble Detected!"); }
-        if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected."); }
+        if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected"); }
         if (debug) { printRx(); }
         if (isBOS) { isDAU=true; } else { isDAU=false; }
         rssi=getRSSI()-getGain();
