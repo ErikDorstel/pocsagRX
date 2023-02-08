@@ -48,8 +48,7 @@ String urlencode(String value) {
       if ((x & 0xf)>9) { x1=(x&0xf)-10+'A'; }
       x=(x>>4)&0xf; x0=x+'0';
       if (x>9) { x0=x-10+'A'; }
-      result+='%'; result+=x0; result+=x1; }
-    yield(); }
+      result+='%'; result+=x0; result+=x1; } }
   return result; }
 
 #endif

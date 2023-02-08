@@ -346,7 +346,7 @@ class SX1278FSK {
 
             if (isBOS && dau!="") { if (daufilter!="" && (!dau.startsWith(daufilter))) { break; } }
 
-            if (isAddress && isMessageRun) { isMessageRun=false; callback(rssi,error,ric,function,dau,message); error=0; message=""; messageCount++; }
+            if (isAddress && isMessageRun && (!isIdle)) { isMessageRun=false; callback(rssi,error,ric,function,dau,message); error=0; message=""; messageCount++; timerRx=millis()+1000; }
 
             if ((!parity) && (!isIdle)) { error++; errorCount++; }
 
@@ -380,7 +380,7 @@ class SX1278FSK {
 
             if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
 
-            if (!isAddress) { isMessageRun=true; }
+            if (!isIdle) { isMessageRun=true; }
 
             if ((!isAddress) && isDAU) { if (debug && idx==0) { needCR=true; Serial.print("    DAU Address: "); } isText=false; }
 
