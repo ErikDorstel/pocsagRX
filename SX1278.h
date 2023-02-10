@@ -315,7 +315,7 @@ class SX1278FSK {
         if (debug) { printRx(); }
         if (isBOS) { isDAU=true; } else { isDAU=false; }
         rssi=getRSSI()-getGain();
-        error=0; ric=0; function=0; dau=""; message="";
+        error=0; ric=0; function=0x58; dau=""; message="";
         timerRx=millis()+1000; }
       else { portEXIT_CRITICAL(&mutexDIO0); }
 

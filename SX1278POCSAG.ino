@@ -26,4 +26,4 @@ void setup() {
   modem.beginPOCSAG(messageReceived);
   readFlash(); }
 
-void loop() { modem.pocsagWorker(); cliWorker(); }
+void loop() { modem.pocsagWorker(); cliWorker(); wlanWorker(); }
