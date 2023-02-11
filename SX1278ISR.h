@@ -18,6 +18,7 @@ volatile bool detectDIO3Flag=false;
 
 portMUX_TYPE mutexDIO0=portMUX_INITIALIZER_UNLOCKED;
 QueueHandle_t queueDIO1;
+UBaseType_t queueSizeDIO1=1024;
 portMUX_TYPE mutexDIO3=portMUX_INITIALIZER_UNLOCKED;
 
 void IRAM_ATTR dio0ISR() {

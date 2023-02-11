@@ -3,6 +3,9 @@
 
 #include <SPI.h>
 #include "SX1278ISR.h"
+uint8_t debug;
+bool needCR=false;
+#include "WLAN.h"
 
 #ifndef HeltecLoRaV2
   #define SCK 18
@@ -68,8 +71,6 @@ const char bcdCodes[16]={0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x2a,
 class SX1278FSK {
   public:
     bool monitorRx;
-    uint8_t debug;
-    bool needCR=false;
     bool isBOS;
     String daufilter="";
     double centerFreq;
@@ -217,7 +218,7 @@ class SX1278FSK {
       setReg(regDioMap1,3,2,0); // DIO2 Mapping 0:Data
       setReg(regDioMap1,1,0,0); // DIO3 Mapping 0:Timeout 1:RSSI/Preamble Detect
       setReg(regDioMap2,0,0,1); // Map Detect Interrupt 0:RSSI 1:Preamble
-      queueDIO1=xQueueCreate(256,sizeof(uint8_t));
+      queueDIO1=xQueueCreate(queueSizeDIO1,sizeof(uint8_t));
       pinMode(DIO0, INPUT); pinMode(DIO1, INPUT); pinMode(DIO2, INPUT); pinMode(DIO3, INPUT);
       attachInterrupt(DIO0,dio0ISR,RISING);
       attachInterrupt(DIO1,dio1ISR,RISING);
@@ -277,8 +278,7 @@ class SX1278FSK {
       Serial.print("   AFC: "); Serial.print(getAFC(),3); Serial.print(" kHz");
       Serial.print("   FEI: "); Serial.print(getFEI(),3); Serial.println(" kHz"); }
 
-    void beginPOCSAG(void (*_callback)(double,uint8_t,uint32_t,char,String,String)=nullptr) {
-      callback=_callback;
+    void beginPOCSAG() {
       setModeFskRxCont();
       initDioIf();
       restartRx(true);
@@ -301,9 +301,23 @@ class SX1278FSK {
         case 0x7e: return "\u00df"; break;
         default: return String((char)code); } }
 
+    void messageReceived(double rssi,uint8_t error, uint32_t ric, char function, String dau, String message) {
+      if (gwURL!="") {
+        if (message=="") { message="no message"; }
+        String postValue="dme=" + esp32ID;
+        postValue+="&rssi=" + urlencode(String(rssi,1));
+        postValue+="&error=" + String(error);
+        postValue+="&ric=" + String(ric);
+        postValue+="&function=" + String(function);
+        postValue+="&dau=" + urlencode(dau);
+        postValue+="&message=" + urlencode(message);
+        postHTTPS(postValue); } }
+
     void pocsagWorker() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
-        if (isMessageRun) { isMessageRun=false; callback(rssi,error,ric,function,dau,message); messageCount++; }
+        if (isMessageRun) { isMessageRun=false; messageReceived(rssi,error,ric,function,dau,message); messageCount++;
+          if (isBOS) { isDAU=true; } else { isDAU=false; }
+          error=0; ric=0; function=0x58; dau=""; message=""; }
         restartRx(false); upTime++;
         if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
 
@@ -346,7 +360,7 @@ class SX1278FSK {
 
             if (isBOS && dau!="") { if (daufilter!="" && (!dau.startsWith(daufilter))) { break; } }
 
-            if (isAddress && isMessageRun && (!isIdle)) { isMessageRun=false; callback(rssi,error,ric,function,dau,message); error=0; message=""; messageCount++; timerRx=millis()+1000; }
+            if (isAddress && isMessageRun && (!isIdle)) { isMessageRun=false; messageReceived(rssi,error,ric,function,dau,message); error=0; message=""; messageCount++; timerRx=millis()+1000; }
 
             if ((!parity) && (!isIdle)) { error++; errorCount++; }
 
@@ -421,7 +435,6 @@ class SX1278FSK {
     uint8_t text=0;
     uint8_t textPos=0;
     uint8_t number=0;
-    uint8_t numberPos=0;
-    void (*callback)(double,uint8_t,uint32_t,char,String,String)=nullptr; };
+    uint8_t numberPos=0; };
 
 #endif

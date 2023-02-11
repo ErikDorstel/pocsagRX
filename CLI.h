@@ -8,9 +8,9 @@ void help() {
   Serial.println("get version");
   Serial.println("get status");
   Serial.println("clear status");
-  Serial.println("get conf");
+  Serial.println("get configuration");
   Serial.println("get register");
-  Serial.println("set freq [137-525]");
+  Serial.println("set frequency [137.000-525.000]");
   Serial.println("set offset [0-100|auto]");
   Serial.println("set bitrate [0.075-250]");
   Serial.println("set shift [0.6-200]");
@@ -35,18 +35,23 @@ void doParse() {
   cmdLine.trim();
   if (cmdLine!="") { Serial.println(); }
   String value=cmdLine.substring(cmdLine.lastIndexOf(" ")+1);
-  if (cmdLine.startsWith("deb")) { modem.debug=value.toInt(); Serial.print("Debug Level: "); Serial.println(modem.debug); }
+  if (cmdLine.startsWith("deb")) { debug=value.toInt(); Serial.print("Debug Level: "); Serial.println(debug); }
   else if (cmdLine.startsWith("mon")) { modem.monitorRx=!modem.monitorRx; }
   else if (cmdLine.startsWith("get ver")) { modem.printChip(); }
   else if (cmdLine.startsWith("get stat")) { modem.printRx();
     Serial.print("Messages received: "); Serial.print(modem.messageCount);
-    Serial.print("   Errors occured: "); Serial.println(modem.errorCount);
-    Serial.print("WLAN Status: "); Serial.print(WiFi.status());
-    Serial.print("   WLAN IP: "); Serial.print(WiFi.localIP().toString());
-    Serial.print("   HTTP Status: "); Serial.println(httpStatus);
+    Serial.print("   Errors occured: "); Serial.print(modem.errorCount);
+    Serial.print("   Bytes queued: "); Serial.print(uxQueueMessagesWaitingFromISR(queueDIO1)); Serial.print("/"); Serial.println(queueSizeDIO1);
+    Serial.print("WLAN Status: "); if (WiFi.status()==3) { Serial.print("Up ("); } else { Serial.print("Down ("); } Serial.print(WiFi.status()); Serial.print(")");
+    Serial.print("   IP: "); Serial.print(WiFi.localIP().toString());
+    Serial.print("   Events Up: "); Serial.print(upEvents);
+    Serial.print("   Down: "); Serial.println(downEvents);
+    Serial.print("HTTP Status: "); Serial.print(httpStatus); if (httpStatus==200) { Serial.print(" OK"); }
+    Serial.print("   Retries: "); Serial.print(httpRetries);
+    Serial.print("   Failed: "); Serial.println(httpFailed);
     Serial.print("Uptime: "); Serial.print(modem.upTime/86400); Serial.print(" days ");
     Serial.print((double)(modem.upTime%86400)/3600.0,2); Serial.println(" hours"); }
-  else if (cmdLine.startsWith("clear stat")) { modem.messageCount=0; modem.errorCount=0; Serial.println("Statistics cleared"); }
+  else if (cmdLine.startsWith("clear stat")) { modem.messageCount=0; modem.errorCount=0; upEvents=0; downEvents=0; httpRetries=0; httpFailed=0; Serial.println("Statistics cleared"); }
   else if (cmdLine.startsWith("get conf")) {
     Serial.print("Center Frequency: "); Serial.print(modem.centerFreq,5); Serial.println(" MHz");
     Serial.print("Rx Frequency Offset: "); Serial.print(modem.rxOffset,3); Serial.println(" kHz");
@@ -68,10 +73,10 @@ void doParse() {
   else if (cmdLine.startsWith("set rxbw")) { if (value=="auto") { modem.setRxBwAuto(); } else { modem.setRxBandwidth(value.toDouble()); } }
   else if (cmdLine.startsWith("set afcbw")) { if (value=="auto") { modem.setAfcBwAuto(); } else { modem.setAfcBandwidth(value.toDouble()); } }
   else if (cmdLine.startsWith("set bos")) { modem.isBOS=!modem.isBOS; Serial.print("BOS Mode: "); Serial.println(modem.isBOS); }
-  else if (cmdLine.startsWith("set dau")) { if (value=="daufilter") { modem.daufilter=""; } else { modem.daufilter=value; } Serial.print("DAU Filter: "); Serial.println(modem.daufilter); }
+  else if (cmdLine.startsWith("set dau")) { if (value=="dau" || value=="daufilter") { modem.daufilter=""; } else { modem.daufilter=value; } Serial.print("DAU Filter: "); Serial.println(modem.daufilter); }
   else if (cmdLine.startsWith("set ssid")) { if (value=="ssid") { wlanSSID=""; } else { wlanSSID=value; } Serial.print("WLAN SSID: "); Serial.println(wlanSSID); }
   else if (cmdLine.startsWith("set secret")) { if (value=="secret") { wlanSecret=""; } else { wlanSecret=value; } Serial.print("WLAN Secret: "); if (wlanSecret!="") { Serial.println("xxxx"); } else { Serial.println(); } }
-  else if (cmdLine.startsWith("set gwurl")) { if (value=="gwurl") { gwURL=""; } else { gwURL=value; } Serial.print("Gateway URL: "); Serial.println(gwURL); }
+  else if (cmdLine.startsWith("set gw")) { if (value=="gw" || value=="gwurl") { gwURL=""; } else { gwURL=value; } Serial.print("Gateway URL: "); Serial.println(gwURL); }
   else if (cmdLine.startsWith("connect wlan")) { connectWLAN(); }
   else if (cmdLine.startsWith("clear wlan")) { wlanSSID=""; httpStatus=0; connectWLAN(); }
   else if (cmdLine.startsWith("restart rx")) { modem.restartRx(true); Serial.println("Rx and PLL restarted"); }
