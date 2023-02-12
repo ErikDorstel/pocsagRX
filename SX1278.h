@@ -300,23 +300,27 @@ class SX1278FSK {
         case 0x7e: return "\u00df"; break;
         default: return String((char)code); } }
 
-    void messageReceived(double rssi,uint8_t error, uint32_t ric, char function, String dau, String message) {
+    void messageReceived() {
+      if (debug) {
+        if (needCR) { needCR=false; Serial.println(); }
+          Serial.print("    BCH Errors: "); Serial.print(error.corrected); Serial.print("/"); Serial.println(error.uncorrected); }
       if (gwURL!="") {
         if (message=="") { message="no message"; }
         String postValue="dme=" + esp32ID;
         postValue+="&rssi=" + urlencode(String(rssi,1));
-        postValue+="&error=" + String(error);
+        postValue+="&error=" + String(error.uncorrected);
         postValue+="&ric=" + String(ric);
         postValue+="&function=" + String(function);
         postValue+="&dau=" + urlencode(dau);
         postValue+="&message=" + urlencode(message);
-        postHTTPS(postValue); } }
+        postHTTPS(postValue); }
+      error.corrected=0; error.uncorrected=0; message=""; messageCount++; }
 
     void pocsagWorker() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
-        if (isMessageRun) { isMessageRun=false; messageReceived(rssi,error,ric,function,dau,message); messageCount++;
+        if (isMessageRun) { isMessageRun=false; messageReceived();
           if (isBOS) { isDAU=true; } else { isDAU=false; }
-          error=0; ric=0; function=0x58; dau=""; message=""; }
+          ric=0; function=0x58; dau=""; }
         restartRx(false); upTime++;
         if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
 
@@ -328,7 +332,7 @@ class SX1278FSK {
         if (debug) { printRx(); }
         if (isBOS) { isDAU=true; } else { isDAU=false; }
         rssi=getRSSI()-getGain();
-        error=0; ric=0; function=0x58; dau=""; message="";
+        error.corrected=0; error.uncorrected=0; ric=0; function=0x58; dau=""; message="";
         timerRx=millis()+1000; }
       else { portEXIT_CRITICAL(&mutexDIO0); }
 
@@ -359,9 +363,10 @@ class SX1278FSK {
 
             if (isBOS && dau!="") { if (daufilter!="" && (!dau.startsWith(daufilter))) { break; } }
 
-            if (isAddress && isMessageRun && (!isIdle)) { isMessageRun=false; messageReceived(rssi,error,ric,function,dau,message); error=0; message=""; messageCount++; timerRx=millis()+1000; }
+            if (isAddress && isMessageRun && (!isIdle)) { isMessageRun=false; messageReceived(); timerRx=millis()+1000; }
 
-            error+=currentError.uncorrected; errorCount.corrected+=currentError.corrected; errorCount.uncorrected+=currentError.uncorrected;
+            error.corrected+=currentError.corrected; error.uncorrected+=currentError.uncorrected;
+            errorCount.corrected+=currentError.corrected; errorCount.uncorrected+=currentError.uncorrected;
 
             if (debug>2) {
               if (needCR) { needCR=false; Serial.println(); }
@@ -423,7 +428,7 @@ class SX1278FSK {
     bool isIdle;
     bool isAddress;
     bool isDAU;
-    uint8_t error;
+    errors error;
     uint32_t ric;
     char function;
     bool isMessageRun;
