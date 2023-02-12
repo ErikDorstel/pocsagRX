@@ -15,6 +15,7 @@ SX1278 and ESP32 based POCSAG receiver
 * german ASCII codes
 * decoding of ROT1 encoded messages
 * wlan based https gateway to forwarding the messages
+* error correction by BCH decoding
 #### SPI bus
 * GPIO 19 - MISO
 * GPIO 23 - MOSI

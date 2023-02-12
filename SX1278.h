@@ -1,6 +1,8 @@
 #ifndef SX1278_FSK_H
 #define SX1278_FSK_H
 
+#include "BCH3121.h"
+CBCH3121 bch;
 #include <SPI.h>
 #include "SX1278ISR.h"
 uint8_t debug;
@@ -59,6 +61,8 @@ bool needCR=false;
 #define regDioMap2 0x41
 #define regChipVersion 0x42
 
+struct globalErrors { uint32_t corrected; uint32_t uncorrected; };
+
 const double gainValues[8]={0,0,-6,-12,-24,-36,-48,0};
 
 const double bwValues[21]=  { 2.6, 3.1, 3.9, 5.2, 6.3, 7.8, 10.4, 12.5, 15.6, 20.8, 25, 31.3, 41.7, 50, 62.5, 83.3, 100, 125, 166.7, 200, 250 };
@@ -79,7 +83,7 @@ class SX1278FSK {
     double shift;
     double rxBandwidth;
     double afcBandwidth;
-    uint32_t errorCount;
+    globalErrors errorCount;
     uint32_t messageCount;
     uint32_t upTime;
     String esp32ID;
@@ -263,11 +267,6 @@ class SX1278FSK {
         if (syncBuffer==0x7cd215d8) { return 7-bitPos; } }
       return 255; }
 
-    bool checkParity(uint32_t codeWord) {
-      uint8_t count=0; for (uint8_t idx=0;idx<=31;idx++) {
-        if (codeWord&(1<<idx)) { count++; } }
-      if (count%2) { return false; } else { return true; } }
-
     void printChip() {
       Serial.print("SX1278 Chip Version: "); Serial.print(getReg(regChipVersion,7,4),DEC);
       Serial.print(" Hardware Revision: "); Serial.println(getReg(regChipVersion,3,0),DEC); }
@@ -352,17 +351,17 @@ class SX1278FSK {
             if (idx==63 && bitShift!=0) { searchSync(rxByte); } }
 
           for (uint8_t idx=0;idx<=15;idx++) {
+            errors currentError=bch.decode(batch[idx]);
+
             if (batch[idx]==0x7a89c197) { isIdle=true; } else { isIdle=false; }
 
             if (!(batch[idx]&(1<<31))) { isAddress=true; } else { isAddress=false; }
-
-            if (checkParity(batch[idx])) { parity=true; } else { parity=false; }
 
             if (isBOS && dau!="") { if (daufilter!="" && (!dau.startsWith(daufilter))) { break; } }
 
             if (isAddress && isMessageRun && (!isIdle)) { isMessageRun=false; messageReceived(rssi,error,ric,function,dau,message); error=0; message=""; messageCount++; timerRx=millis()+1000; }
 
-            if ((!parity) && (!isIdle)) { error++; errorCount++; }
+            error+=currentError.uncorrected; errorCount.corrected+=currentError.corrected; errorCount.uncorrected+=currentError.uncorrected;
 
             if (debug>2) {
               if (needCR) { needCR=false; Serial.println(); }
@@ -371,7 +370,7 @@ class SX1278FSK {
                 if (batch[idx]&(1<<bit)) { Serial.print("1"); } else { Serial.print("0"); } }
               if (isIdle) { Serial.print(" Idle"); }
               if (isAddress) { Serial.print(" Address"); } else { Serial.print(" Message"); }
-              if (parity) { Serial.println(" Parity Ok"); } else { Serial.println(" Parity Failed"); } }
+              Serial.print(" BCH Error "); Serial.print(currentError.corrected); Serial.print("/"); Serial.println(currentError.uncorrected); }
 
             if (isAddress && (!isIdle)) {
               if (needCR && debug) { needCR=false; Serial.println(); }
