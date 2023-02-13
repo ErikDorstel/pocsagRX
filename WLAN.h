@@ -43,7 +43,7 @@ void postHTTPS(String postData) {
       httpStatus=https.POST(postData);
       if (debug) { if (needCR) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.print("    HTTP POST: "); Serial.println(postData); }
-        Serial.print("    HTTP Status: "); Serial.println(httpStatus); }
+        Serial.print("    HTTP Attempt: "); Serial.print(attempt+1); Serial.print("    Status: "); Serial.println(httpStatus); }
       https.end(); client.stop(); } else { httpStatus=0; }
     attempt++; if (httpStatus==200) { break; } }
   httpRetries+=attempt-1; if (attempt>httpMaxRetries) { httpFailed++; } }
