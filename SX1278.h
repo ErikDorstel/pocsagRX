@@ -317,8 +317,7 @@ class SX1278FSK {
 
     void messageFiltered() {
       if (needCR && debug) { needCR=false; Serial.println(" filtered out"); }
-      if (isBOS) { isDAU=true; } else { isDAU=false; }
-      error.corrected=0; error.uncorrected=0; ric=0; function=0x58; dau=""; message=""; }
+      error.corrected=0; error.uncorrected=0; message=""; }
 
     void pocsagWorker() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
