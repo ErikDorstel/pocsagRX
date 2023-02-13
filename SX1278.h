@@ -301,9 +301,8 @@ class SX1278FSK {
         default: return String((char)code); } }
 
     void messageReceived() {
-      if (debug) {
-        if (needCR) { needCR=false; Serial.println(); }
-          Serial.print("    BCH Errors: "); Serial.print(error.corrected); Serial.print("/"); Serial.println(error.uncorrected); }
+      if (debug) { if (needCR) { needCR=false; Serial.println(); }
+        Serial.print("    BCH Errors: "); Serial.print(error.corrected); Serial.print("/"); Serial.println(error.uncorrected); }
       if (gwURL!="") {
         if (message=="") { message="no message"; }
         String postValue="dme=" + esp32ID;
@@ -315,6 +314,11 @@ class SX1278FSK {
         postValue+="&message=" + urlencode(message);
         postHTTPS(postValue); }
       error.corrected=0; error.uncorrected=0; message=""; messageCount++; }
+
+    void messageFiltered() {
+      if (needCR && debug) { needCR=false; Serial.println(" filtered out"); }
+      if (isBOS) { isDAU=true; } else { isDAU=false; }
+      error.corrected=0; error.uncorrected=0; ric=0; function=0x58; dau=""; message=""; }
 
     void pocsagWorker() {
       if (millis()>=timerRx) { timerRx=millis()+1000;
@@ -361,7 +365,7 @@ class SX1278FSK {
 
             if (!(batch[idx]&(1<<31))) { isAddress=true; } else { isAddress=false; }
 
-            if (isBOS && dau!="") { if (daufilter!="" && (!dau.startsWith(daufilter))) { break; } }
+            if (isBOS && dau!="") { if (daufilter!="" && (!dau.startsWith(daufilter))) { isMessageRun=false; messageFiltered(); break; } }
 
             if (isAddress && isMessageRun && (!isIdle)) { isMessageRun=false; messageReceived(); timerRx=millis()+1000; }
 

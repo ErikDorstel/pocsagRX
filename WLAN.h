@@ -41,8 +41,7 @@ void postHTTPS(String postData) {
       client.connect(gwURL.c_str(),443); https.begin(client,gwURL);
       https.addHeader("Content-Type","application/x-www-form-urlencoded");
       httpStatus=https.POST(postData);
-      if (debug) {
-        if (needCR) { needCR=false; Serial.println(); }
+      if (debug) { if (needCR) { needCR=false; Serial.println(); }
         if (debug>1) { Serial.print("    HTTP POST: "); Serial.println(postData); }
         Serial.print("    HTTP Status: "); Serial.println(httpStatus); }
       https.end(); client.stop(); } else { httpStatus=0; }
