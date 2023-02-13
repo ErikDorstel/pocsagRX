@@ -334,6 +334,7 @@ class SX1278FSK {
         if (debug>1) { Serial.println("Preamble Detected!"); }
         if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected"); }
         if (debug) { printRx(); }
+        if (debug>1) { Serial.print("Bytes queued: "); Serial.print(uxQueueMessagesWaitingFromISR(queueDIO1)); Serial.print("/"); Serial.println(queueSizeDIO1); }
         if (isBOS) { isDAU=true; } else { isDAU=false; }
         rssi=getRSSI()-getGain();
         error.corrected=0; error.uncorrected=0; ric=0; function=0x58; dau=""; message="";

@@ -18,10 +18,11 @@ int httpMaxRetries=2;
 uint32_t httpRetries;
 uint32_t httpFailed;
 uint32_t timerWLAN;
+bool hasIP=false;
 
-void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: " + WiFi.SSID() + " connected"); timerWLAN=millis()+10000; upEvents++; }
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: " + WiFi.SSID() + " connected"); timerWLAN=millis()+10000; upEvents++; hasIP=true; }
 
-void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: disconnected"); timerWLAN=millis()+10000; downEvents++; }
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { WiFi.disconnect(); if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: disconnected"); timerWLAN=millis()+10000; downEvents++; hasIP=false; }
 
 void initWLAN() {
   WiFi.mode(WIFI_STA);
@@ -31,13 +32,14 @@ void initWLAN() {
   client.setInsecure(); https.setReuse(true); timerWLAN=millis()+10000; }
 
 void connectWLAN() {
-  if (WiFi.status()==WL_CONNECTED) { WiFi.disconnect(); }
-  timerWLAN=millis()+10000;
-  if (wlanSSID!="" && wlanSecret!="") { WiFi.begin(wlanSSID.c_str(),wlanSecret.c_str()); } }
+  WiFi.disconnect(); timerWLAN=millis()+20000;
+  if (wlanSSID!="" && wlanSecret!="") {
+    if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: try connect");
+    WiFi.begin(wlanSSID.c_str(),wlanSecret.c_str()); } }
 
 void postHTTPS(String postData) {
   uint8_t attempt=0; while (attempt<=httpMaxRetries) {
-    if (WiFi.status()==WL_CONNECTED) {
+    if (hasIP) {
       client.connect(gwURL.c_str(),443); https.begin(client,gwURL);
       https.addHeader("Content-Type","application/x-www-form-urlencoded");
       httpStatus=https.POST(postData);
@@ -63,6 +65,6 @@ String urlencode(String value) {
 
 void wlanWorker() {
   if (millis()>=timerWLAN) { timerWLAN=millis()+10000;
-    if (WiFi.status()!=WL_CONNECTED && wlanSSID!="" && wlanSecret!="") { connectWLAN(); } } }
+    if ((hasIP==false || WiFi.status()!=WL_CONNECTED) && wlanSSID!="" && wlanSecret!="") { connectWLAN(); } } }
 
 #endif
