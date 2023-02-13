@@ -45,14 +45,15 @@ void doParse() {
     Serial.print("   Bytes queued: "); Serial.print(uxQueueMessagesWaitingFromISR(queueDIO1)); Serial.print("/"); Serial.println(queueSizeDIO1);
     Serial.print("WLAN Status: "); if (WiFi.status()==3) { Serial.print("Up ("); } else { Serial.print("Down ("); } Serial.print(WiFi.status()); Serial.print(")");
     Serial.print("   IP: "); Serial.print(WiFi.localIP().toString());
+    Serial.print("   RSSI: "); Serial.print(WiFi.RSSI()); Serial.print(" dBm");
     Serial.print("   Events Up: "); Serial.print(upEvents);
     Serial.print("   Down: "); Serial.println(downEvents);
     Serial.print("HTTP Status: "); Serial.print(httpStatus); if (httpStatus==200) { Serial.print(" OK"); }
-    Serial.print("   Retries: "); Serial.print(httpRetries);
+    Serial.print("   Retried: "); Serial.print(httpRetried);
     Serial.print("   Failed: "); Serial.println(httpFailed);
     Serial.print("Uptime: "); Serial.print(modem.upTime/86400); Serial.print(" days ");
     Serial.print((double)(modem.upTime%86400)/3600.0,2); Serial.println(" hours"); }
-  else if (cmdLine.startsWith("clear stat")) { modem.messageCount=0; modem.errorCount.corrected=0; modem.errorCount.uncorrected=0; upEvents=0; downEvents=0; httpRetries=0; httpFailed=0; Serial.println("Statistics cleared"); }
+  else if (cmdLine.startsWith("clear stat")) { modem.messageCount=0; modem.errorCount.corrected=0; modem.errorCount.uncorrected=0; upEvents=0; downEvents=0; httpRetried=0; httpFailed=0; Serial.println("Statistics cleared"); }
   else if (cmdLine.startsWith("get conf")) {
     Serial.print("Center Frequency: "); Serial.print(modem.centerFreq,5); Serial.println(" MHz");
     Serial.print("Rx Frequency Offset: "); Serial.print(modem.rxOffset,3); Serial.println(" kHz");

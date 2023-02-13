@@ -15,14 +15,18 @@ uint32_t upEvents;
 uint32_t downEvents;
 int httpStatus;
 int httpMaxRetries=2;
-uint32_t httpRetries;
+uint32_t httpRetried;
 uint32_t httpFailed;
 uint32_t timerWLAN;
 bool hasIP=false;
 
-void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) { if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: " + WiFi.SSID() + " connected"); timerWLAN=millis()+10000; upEvents++; hasIP=true; }
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+  if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: " + WiFi.SSID() + " with " + WiFi.RSSI() + " dBm connected");
+  timerWLAN=millis()+10000; upEvents++; hasIP=true; }
 
-void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { WiFi.disconnect(); if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: disconnected"); timerWLAN=millis()+10000; downEvents++; hasIP=false; }
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { WiFi.disconnect();
+  if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: disconnected");
+  timerWLAN=millis()+10000; downEvents++; hasIP=false; }
 
 void initWLAN() {
   WiFi.mode(WIFI_STA);
@@ -39,8 +43,7 @@ void connectWLAN() {
 
 void postHTTPS(String postData) {
   uint8_t attempt=0; while (attempt<=httpMaxRetries) {
-    if (hasIP) {
-      client.connect(gwURL.c_str(),443); https.begin(client,gwURL);
+    if (hasIP) { client.connect(gwURL.c_str(),443); https.begin(client,gwURL);
       https.addHeader("Content-Type","application/x-www-form-urlencoded");
       httpStatus=https.POST(postData);
       if (debug) { if (needCR) { needCR=false; Serial.println(); }
@@ -48,7 +51,8 @@ void postHTTPS(String postData) {
         Serial.print("    HTTP Attempt: "); Serial.print(attempt+1); Serial.print("    Status: "); Serial.println(httpStatus); }
       https.end(); client.stop(); } else { httpStatus=0; }
     attempt++; if (httpStatus==200) { break; } }
-  httpRetries+=attempt-1; if (attempt>httpMaxRetries) { httpFailed++; } }
+  if (attempt>httpMaxRetries && httpStatus!=200) { httpFailed++; }
+  else if (attempt>1) { httpRetried++; } }
 
 String urlencode(String value) {
   String result=""; char x; char x0; char x1;
