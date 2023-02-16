@@ -1,12 +1,12 @@
 #ifndef SX1278_FSK_H
 #define SX1278_FSK_H
 
+#include "Log.h"
+Logging Log;
 #include "BCH3121.h"
 CBCH3121 bch;
 #include <SPI.h>
 #include "SX1278ISR.h"
-uint8_t debug;
-bool needCR=false;
 #include "WLAN.h"
 
 #ifndef HeltecLoRaV2
@@ -89,7 +89,7 @@ class SX1278FSK {
     String esp32ID;
 
     SX1278FSK(bool _monitorRx=false, uint8_t _debug=0) {
-      monitorRx=_monitorRx; debug=_debug; }
+      monitorRx=_monitorRx; Log.debug=_debug; }
 
     uint8_t readSPI(uint8_t addr) {
       digitalWrite(CS, LOW);
@@ -131,11 +131,11 @@ class SX1278FSK {
 
     void regDump() {
       for (uint8_t reg=0x00;reg<=0x42;reg++) { uint8_t value=readSPI(reg);
-        Serial.printf("0x%02x:     0x%02x     %3u     0b",reg,value,value); Serial.println(value,BIN); } }
+        Log.print(0,"0x%02x:     0x%02x     %3u     0b%s\r\n",reg,value,value,String(value,BIN).c_str()); } }
 
     void setFrequency(double _centerFreq, double _rxOffset=0) {
       centerFreq=_centerFreq; rxOffset=_rxOffset;
-      Serial.print("Center Frequency: "); Serial.print(centerFreq+(rxOffset/1000),5); Serial.println(" MHz");
+      Log.print(0,"Center Frequency: %s MHz\r\n",String(centerFreq+(rxOffset/1000),5).c_str());
       uint32_t value=(uint32_t)round((centerFreq+(rxOffset/1000))*(1<<14));
       writeSPI(regFreqMSB,(value & 0xFF0000) >> 16);
       writeSPI(regFreqMID,(value & 0x00FF00) >> 8);
@@ -143,14 +143,14 @@ class SX1278FSK {
 
     void setBitrate(double _bitrate) {
       bitrate=_bitrate;
-      Serial.print("Bitrate: "); Serial.print(bitrate*1000,0); Serial.println(" bps");
+      Log.print(0,"Bitrate: %s bps\r\n",String(bitrate*1000,0).c_str());
       uint16_t value=(uint16_t)round(32000.0/bitrate);
       writeSPI(regBrMSB,(value & 0xFF00) >> 8);
       writeSPI(regBrLSB,value & 0x00FF); }
 
     void setShift(double _shift) {
       shift=_shift;
-      Serial.print("Shift: +/- "); Serial.print(shift*1000,0); Serial.println(" Hz");
+      Log.print(0,"Shift: +/- %s Hz\r\n",String(shift*1000,0).c_str());
       uint16_t value=(uint16_t)round(shift*(1<<11)/125.0);
       writeSPI(regShiftMSB,(value & 0xFF00) >> 8);
       writeSPI(regShiftLSB,value & 0x00FF); }
@@ -158,7 +158,7 @@ class SX1278FSK {
     void setRxBandwidth(double _rxBandwidth) {
       uint8_t selected=20; for (uint8_t idx=0;idx<=20;idx++) {
         if (bwValues[idx]>=_rxBandwidth) { selected=idx; break; } }
-      Serial.print("Rx Bandwidth: "); Serial.print(bwValues[selected],1); Serial.println(" kHz");
+      Log.print(0,"Rx Bandwidth: %s kHz\r\n",String(bwValues[selected],1).c_str());
       setReg(regRxBw,4,0,bwIntegers[selected]); rxBandwidth=bwValues[selected]; }
 
     void setRxBwAuto() { setRxBandwidth(shift+(bitrate/2)); }
@@ -166,7 +166,7 @@ class SX1278FSK {
     void setAfcBandwidth(double _afcBandwidth) {
       uint8_t selected=20; for (uint8_t idx=0;idx<=20;idx++) {
         if (bwValues[idx]>=_afcBandwidth) { selected=idx; break; } }
-      Serial.print("AFC Bandwidth: "); Serial.print(bwValues[selected],1); Serial.println(" kHz");
+      Log.print(0,"AFC Bandwidth: %s kHz\r\n",String(bwValues[selected],1).c_str());
       setReg(regAfcBw,4,0,bwIntegers[selected]); afcBandwidth=bwValues[selected]; }
 
     void setAfcBwAuto(double error=12) { setAfcBandwidth(2*(shift+(bitrate/2))+error); }
@@ -268,14 +268,10 @@ class SX1278FSK {
       return 255; }
 
     void printChip() {
-      Serial.print("SX1278 Chip Version: "); Serial.print(getReg(regChipVersion,7,4),DEC);
-      Serial.print(" Hardware Revision: "); Serial.println(getReg(regChipVersion,3,0),DEC); }
+      Log.print(0,"SX1278 Chip Version: %i Hardware Revision: %i\r\n",getReg(regChipVersion,7,4),getReg(regChipVersion,3,0)); }
 
     void printRx() {
-      Serial.print("RSSI: "); Serial.print(getRSSI(),1); Serial.print(" dBm");
-      Serial.print("   Gain: "); Serial.print(getGain(),1); Serial.print(" dBm");
-      Serial.print("   AFC: "); Serial.print(getAFC(),3); Serial.print(" kHz");
-      Serial.print("   FEI: "); Serial.print(getFEI(),3); Serial.println(" kHz"); }
+      Log.print(0,"RSSI: %s dBm   Gain: %s dBm   AFC: %s kHz   FEI: %s kHz\r\n",String(getRSSI(),1).c_str(),String(getGain(),1).c_str(),String(getAFC(),3).c_str(),String(getFEI(),3).c_str()); }
 
     void beginPOCSAG() {
       setModeFskRxCont();
@@ -284,7 +280,7 @@ class SX1278FSK {
       startSequencer();
       delay(500);
       timerRx=millis()+1000;
-      Serial.println("POCSAG Rx started"); }
+      Log.print(0,"POCSAG Rx started\r\n"); }
 
     String consoleDE(uint8_t code) {
       if (isROT1) { code=(code==0)?127:code-1; }
@@ -301,8 +297,7 @@ class SX1278FSK {
         default: return String((char)code); } }
 
     void messageReceived() {
-      if (debug) { if (needCR) { needCR=false; Serial.println(); }
-        Serial.print("    BCH Errors: "); Serial.print(error.corrected); Serial.print("/"); Serial.println(error.uncorrected); }
+      Log.print(1,"    BCH Errors: %i/%i\r\n",error.corrected,error.uncorrected);
       if (gwURL!="") {
         if (message=="") { message="no message"; }
         String postValue="dme=" + esp32ID;
@@ -316,7 +311,7 @@ class SX1278FSK {
       error.corrected=0; error.uncorrected=0; message=""; messageCount++; }
 
     void messageFiltered() {
-      if (needCR && debug) { needCR=false; Serial.println(" filtered out"); }
+      Log.needCR=false; Log.print(1," filtered out\r\n");
       error.corrected=0; error.uncorrected=0; message=""; }
 
     void pocsagWorker() {
@@ -325,15 +320,14 @@ class SX1278FSK {
           if (isBOS) { isDAU=true; } else { isDAU=false; }
           ric=0; function=0x58; dau=""; }
         restartRx(false); upTime++;
-        if (monitorRx) { if (needCR) { needCR=false; Serial.println(); } printRx(); } }
+        if (monitorRx) { printRx(); } }
 
       portENTER_CRITICAL(&mutexDIO0);
       if (detectDIO0Flag) { detectDIO0Flag=false; portEXIT_CRITICAL(&mutexDIO0);
-        if (needCR && (debug || rxOffset==0)) { needCR=false; Serial.println(); }
-        if (debug>1) { Serial.println("Preamble Detected!"); }
-        if (rxOffset==0) { rxOffset=getAFC(); Serial.print("Auto Rx Offset: "); Serial.print(rxOffset,3); Serial.println(" kHz detected"); }
-        if (debug) { printRx(); }
-        if (debug>1) { Serial.print("Bytes queued: "); Serial.print(uxQueueMessagesWaitingFromISR(queueDIO1)); Serial.print("/"); Serial.println(queueSizeDIO1); }
+        Log.print(2,"Preamble Detected!\r\n");
+        if (rxOffset==0) { rxOffset=getAFC(); Log.print(0,"Auto Rx Offset: %s kHz detected\r\n",String(rxOffset,3).c_str()); }
+        if (Log.debug) { printRx(); }
+        Log.print(2,"Bytes queued: %i/%i\r\n",uxQueueMessagesWaitingFromISR(queueDIO1),queueSizeDIO1);
         if (isBOS) { isDAU=true; } else { isDAU=false; }
         rssi=getRSSI()-getGain();
         error.corrected=0; error.uncorrected=0; ric=0; function=0x58; dau=""; message="";
@@ -346,9 +340,7 @@ class SX1278FSK {
 
         if (bitShift!=255) {
           timerRx=millis()+1000;
-          if (debug>1) {
-            if (needCR) { needCR=false; Serial.println(); }
-            Serial.print("Frame Sync Detected! Bit Shift: "); Serial.println(bitShift); }
+          Log.print(2,"Frame Sync Detected! Bit Shift: %i\r\n",bitShift);
           uint32_t batch[16]={0};
 
           for (uint8_t idx=0;idx<=63;idx++) {
@@ -372,57 +364,54 @@ class SX1278FSK {
             error.corrected+=currentError.corrected; error.uncorrected+=currentError.uncorrected;
             errorCount.corrected+=currentError.corrected; errorCount.uncorrected+=currentError.uncorrected;
 
-            if (debug>2) {
-              if (needCR) { needCR=false; Serial.println(); }
-              Serial.printf("%02u: ",idx); for (int8_t bit=31;bit>=0;bit--) {
-                if (bit==30 || (isAddress && bit==12) || bit==10 || bit==0) { Serial.print(" "); }
-                if (batch[idx]&(1<<bit)) { Serial.print("1"); } else { Serial.print("0"); } }
-              if (isIdle) { Serial.print(" Idle"); }
-              if (isAddress) { Serial.print(" Address"); } else { Serial.print(" Message"); }
-              Serial.print(" BCH Error "); Serial.print(currentError.corrected); Serial.print("/"); Serial.println(currentError.uncorrected); }
+            Log.print(3,"%02u: ",idx); for (int8_t bit=31;bit>=0;bit--) {
+              if (bit==30 || (isAddress && bit==12) || bit==10 || bit==0) { Log.write(3,0x20); }
+              if (batch[idx]&(1<<bit)) { Log.write(3,0x31); } else { Log.write(3,0x30); } }
+            if (isIdle) { Log.print(3," Idle"); }
+            if (isAddress) { Log.print(3," Address"); } else { Log.print(3," Message"); }
+            Log.print(3," BCH Error %i/%i\r\n",currentError.corrected,currentError.uncorrected);
 
             if (isAddress && (!isIdle)) {
-              if (needCR && debug) { needCR=false; Serial.println(); }
               isDAU=false;
               ric=((batch[idx]&0x7fffe000)>>10)|(idx>>1);
               if (ric==4512 || ric==4520) { isROT1=true; } else { isROT1=false; }
-              if (debug) { Serial.print("  RIC: "); Serial.println(ric,DEC); }
-              if (debug && isROT1) { Serial.println("    Encoded: ROT1"); }
+              Log.print(1,"  RIC: %i\r\n",ric);
+              if (isROT1) { Log.print(1,"    Encoded: ROT1\r\n"); }
               function=(batch[idx]&0x1800)>>11;
               if (isBOS) { function+=0x41; } else { function+=0x30; }
               switch(function) {
-                case '0': if (debug) { Serial.println("    Message Type: Numeric"); } isText=false; break;
-                case '1': if (debug) { Serial.println("    Message Type: 1"); } isText=false; break;
-                case '2': if (debug) { Serial.println("    Message Type: 2"); } isText=false; break;
-                case '3': if (debug) { Serial.println("    Message Type: Text"); } isText=true; break;
-                case 'A': if (debug) { Serial.println("    Sub RIC: A"); } isText=true; break;
-                case 'B': if (debug) { Serial.println("    Sub RIC: B"); } isText=true; break;
-                case 'C': if (debug) { Serial.println("    Sub RIC: C"); } isText=true; break;
-                case 'D': if (debug) { Serial.println("    Sub RIC: D"); } isText=true; } }
+                case '0': Log.print(1,"    Message Type: Numeric\r\n"); isText=false; break;
+                case '1': Log.print(1,"    Message Type: 1\r\n"); isText=false; break;
+                case '2': Log.print(1,"    Message Type: 2\r\n"); isText=false; break;
+                case '3': Log.print(1,"    Message Type: Text\r\n"); isText=true; break;
+                case 'A': Log.print(1,"    Sub RIC: A\r\n"); isText=true; break;
+                case 'B': Log.print(1,"    Sub RIC: B\r\n"); isText=true; break;
+                case 'C': Log.print(1,"    Sub RIC: C\r\n"); isText=true; break;
+                case 'D': Log.print(1,"    Sub RIC: D\r\n"); isText=true; } }
 
             if (isAddress) { text=0; textPos=0; number=0; numberPos=0; }
 
             if (!isIdle) { isMessageRun=true; }
 
-            if ((!isAddress) && isDAU) { if (debug && idx==0) { needCR=true; Serial.print("    DAU Address: "); } isText=false; }
+            if ((!isAddress) && isDAU) { isText=false; if (idx==0) { Log.print(1,"    DAU Address: "); Log.needCR=true; } }
 
             if ((!isAddress) && isText) {
-              if ((!needCR) && debug) { needCR=true; Serial.print("    "); }
+              if (!Log.needCR) { Log.print(1,"    "); Log.needCR=true; }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 text>>=1; text|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
                 textPos++; if (textPos>=7) { text>>=1;
                   message+=String(consoleDE(text));
-                  if (debug) { Serial.print(consoleDE(text)); }
+                  Log.needCR=false; Log.print(1,"%s",consoleDE(text).c_str()); Log.needCR=true;
                   text=0; textPos=0; } } }
 
             if ((!isAddress) && (!isText)) {
-              if ((!needCR) && debug) { needCR=true; Serial.print("    "); }
+              if (!Log.needCR) { Log.print(1,"    "); Log.needCR=true; }
               for (uint8_t bitPos=30;bitPos>=11;bitPos--) {
                 number>>=1; number|=(batch[idx]&(1<<bitPos))>>(bitPos-7);
                 numberPos++; if (numberPos>=4) { number>>=4;
                   if (isDAU) { dau+=String(bcdCodes[number]); }
                   if (!isDAU) { message+=String(bcdCodes[number]); }
-                  if (debug) { Serial.write(bcdCodes[number]); }
+                  Log.write(1,bcdCodes[number]);
                   number=0; numberPos=0; } } } } } } }
 
   private:

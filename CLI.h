@@ -35,7 +35,7 @@ void doParse() {
   cmdLine.trim();
   if (cmdLine!="") { Serial.println(); }
   String value=cmdLine.substring(cmdLine.lastIndexOf(" ")+1);
-  if (cmdLine.startsWith("deb")) { debug=value.toInt(); Serial.print("Debug Level: "); Serial.println(debug); }
+  if (cmdLine.startsWith("deb")) { Log.debug=value.toInt(); Serial.print("Debug Level: "); Serial.println(Log.debug); }
   else if (cmdLine.startsWith("mon")) { modem.monitorRx=!modem.monitorRx; }
   else if (cmdLine.startsWith("get ver")) { modem.printChip(); }
   else if (cmdLine.startsWith("get stat")) { modem.printRx();

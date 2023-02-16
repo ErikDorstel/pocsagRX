@@ -21,11 +21,11 @@ uint32_t timerWLAN;
 bool hasIP=false;
 
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
-  if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: " + WiFi.SSID() + " with " + WiFi.RSSI() + " dBm connected");
+  Log.print(0,"WLAN AP: %s  with %i dBm connected\r\n",WiFi.SSID(),WiFi.RSSI());
   timerWLAN=millis()+10000; upEvents++; hasIP=true; }
 
 void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { WiFi.disconnect();
-  if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: disconnected");
+  Log.print(0,"WLAN AP: disconnected\r\n");
   timerWLAN=millis()+10000; downEvents++; hasIP=false; }
 
 void initWLAN() {
@@ -38,7 +38,7 @@ void initWLAN() {
 void connectWLAN() {
   WiFi.disconnect(); timerWLAN=millis()+20000;
   if (wlanSSID!="" && wlanSecret!="") {
-    if (needCR) { needCR=false; Serial.println(); } Serial.println("WLAN AP: try connect");
+    Log.print(0,"WLAN AP: try connect\r\n");
     WiFi.begin(wlanSSID.c_str(),wlanSecret.c_str()); } }
 
 void postHTTPS(String postData) {
@@ -46,9 +46,8 @@ void postHTTPS(String postData) {
     if (hasIP) { client.connect(gwURL.c_str(),443); https.begin(client,gwURL);
       https.addHeader("Content-Type","application/x-www-form-urlencoded");
       httpStatus=https.POST(postData);
-      if (debug) { if (needCR) { needCR=false; Serial.println(); }
-        if (debug>1) { Serial.print("    HTTP POST: "); Serial.println(postData); }
-        Serial.print("    HTTP Attempt: "); Serial.print(attempt+1); Serial.print("    Status: "); Serial.println(httpStatus); }
+      Log.print(2,"    HTTP POST: %s\r\n",postData.c_str());
+      Log.print(1,"    HTTP Attempt: %i    Status: %i\r\n",attempt+1,httpStatus);
       https.end(); client.stop(); } else { httpStatus=0; }
     attempt++; if (httpStatus==200) { break; } }
   if (attempt>httpMaxRetries && httpStatus!=200) { httpFailed++; }
