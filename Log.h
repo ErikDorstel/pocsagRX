@@ -29,7 +29,7 @@ class Logging {
       if (len<0) { va_end(args); return; }
       if (len>=(int)sizeof(buffer)) {
         tbuffer=(char*)malloc(len+1);
-        if(tbuffer==NULL) { va_end(args); return; }
+        if (tbuffer==NULL) { va_end(args); return; }
         len=vsnprintf(tbuffer,len+1,format,args); }
       va_end(args);
 
