@@ -91,7 +91,13 @@ void doParse() {
 
 void cliWorker() {
   if (Serial.available()) {
-    char serByte=Serial.read();
-    if (serByte==127) { Log.write(0,serByte); cmdLine.remove(cmdLine.length()-1); }
-    else if (serByte==13 || serByte==10) { Log.print(0,"\r\n"); doParse(); cmdLine=""; }
-    else { Log.write(0,serByte); cmdLine+=String(serByte); } } }
+    char serialByte=Serial.read();
+    if (serialByte==127) { Log.write(0,serialByte); cmdLine.remove(cmdLine.length()-1); }
+    else if (serialByte==13 || serialByte==10) { Log.print(0,"\r\n"); doParse(); cmdLine=""; }
+    else { Log.write(0,serialByte); cmdLine+=String(serialByte); } }
+
+  if (telnetSession) { if (telnetSession.connected()) { if (telnetSession.available()) {
+    char telnetByte=telnetSession.read();
+    if (telnetByte==127) { Log.write(0,telnetByte); cmdLine.remove(cmdLine.length()-1); }
+    else if (telnetByte==13 || telnetByte==10) { Log.print(0,"\r\n"); doParse(); cmdLine=""; }
+    else { cmdLine+=String(telnetByte); } } } } }

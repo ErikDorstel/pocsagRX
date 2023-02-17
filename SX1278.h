@@ -8,6 +8,7 @@ CBCH3121 bch;
 #include <SPI.h>
 #include "SX1278ISR.h"
 #include "WLAN.h"
+#include "TELNET.h"
 
 #ifndef HeltecLoRaV2
   #define SCK 18

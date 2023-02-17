@@ -9,8 +9,9 @@ SX1278FSK modem(false,0);
 void setup() {
   SPI.begin(SCK, MISO, MOSI, CS);
   initWLAN();
+  initTELNET();
   modem.initChip();
   modem.beginPOCSAG();
   readFlash(); }
 
-void loop() { modem.pocsagWorker(); cliWorker(); wlanWorker(); }
+void loop() { modem.pocsagWorker(); cliWorker(); wlanWorker(); telnetWorker(); }
