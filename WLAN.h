@@ -21,7 +21,7 @@ uint32_t timerWLAN;
 bool hasIP=false;
 
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
-  Log.print(0,"WLAN AP: %s  with %i dBm connected\r\n",WiFi.SSID(),WiFi.RSSI());
+  Log.print(0,"WLAN AP: %s with %i dBm connected\r\n",WiFi.SSID(),WiFi.RSSI());
   timerWLAN=millis()+10000; upEvents++; hasIP=true; }
 
 void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { WiFi.disconnect();

@@ -5,17 +5,17 @@ Preferences flash;
 
 void getFlash() {
   flash.begin("SX1278FSK",true);
-  Serial.print("Center Frequency: "); Serial.print(flash.getDouble("centerFreq",439.9875),5); Serial.println(" MHz");
-  Serial.print("Rx Frequency Offset: "); Serial.print(flash.getDouble("rxOffset",7.446),3); Serial.println(" kHz");
-  Serial.print("Bitrate: "); Serial.print(flash.getDouble("bitrate",1.2)*1000,0); Serial.println(" bps");
-  Serial.print("Shift Frequency: +/- "); Serial.print(flash.getDouble("shift",4.5)*1000,0); Serial.println(" Hz");
-  Serial.print("Rx Bandwidth: "); Serial.print(flash.getDouble("rxBandwidth",5.2),1); Serial.println(" kHz");
-  Serial.print("AFC Bandwidth: "); Serial.print(flash.getDouble("afcBandwidth",25),1); Serial.println(" kHz");
-  Serial.print("BOS Mode: "); Serial.println(flash.getBool("isBOS",false));
-  Serial.print("DAU Filter: "); Serial.println(flash.getString("daufilter",""));
-  Serial.print("WLAN SSID: "); Serial.println(flash.getString("wlanSSID",""));
-  Serial.print("WLAN Secret: "); if (flash.getString("wlanSecret","")!="") { Serial.println("xxxx"); } else { Serial.println(); }
-  Serial.print("Gateway URL: "); Serial.println(flash.getString("gwURL",""));
+  Log.print(0,"Center Frequency: %s MHz\r\n",String(flash.getDouble("centerFreq",439.9875),5).c_str());
+  Log.print(0,"Rx Frequency Offset: %s kHz\r\n",String(flash.getDouble("rxOffset",7.446),3).c_str());
+  Log.print(0,"Bitrate: %s bps\r\n",String(flash.getDouble("bitrate",1.2)*1000,0).c_str());
+  Log.print(0,"Shift Frequency: +/- %s Hz\r\n",String(flash.getDouble("shift",4.5)*1000,0).c_str());
+  Log.print(0,"Rx Bandwidth: %s kHz\r\n",String(flash.getDouble("rxBandwidth",5.2),1).c_str());
+  Log.print(0,"AFC Bandwidth: %s kHz\r\n",String(flash.getDouble("afcBandwidth",25),1).c_str());
+  Log.print(0,"BOS Mode: %i\r\n",flash.getBool("isBOS",false));
+  Log.print(0,"DAU Filter: %s\r\n",String(flash.getString("daufilter","")).c_str());
+  Log.print(0,"WLAN SSID: %s\r\n",flash.getString("wlanSSID",""));
+  if (flash.getString("wlanSecret","")!="") { Log.print(0,"WLAN Secret: xxxx\r\n"); } else { Log.print(0,"WLAN Secret:\r\n"); }
+  Log.print(0,"Gateway URL: %s\r\n",String(flash.getString("gwURL","")).c_str());
   flash.end(); }
 
 void readFlash() {
@@ -34,7 +34,7 @@ void readFlash() {
   wlanSecret=flash.getString("wlanSecret","");
   gwURL=flash.getString("gwURL","");
   flash.end();
-  Serial.println("Flash: read");
+  Log.print(0,"Flash: read\r\n");
   connectWLAN(); }
 
 void writeFlash() {
@@ -51,8 +51,8 @@ void writeFlash() {
   flash.putString("wlanSecret",wlanSecret);
   flash.putString("gwURL",gwURL);
   flash.end();
-  Serial.println("Flash: written"); }
+  Log.print(0,"Flash: written\r\n"); }
 
 void eraseFlash() {
   nvs_flash_erase(); nvs_flash_init();
-  Serial.println("Flash: erased"); }
+  Log.print(0,"Flash: erased\r\n"); }
