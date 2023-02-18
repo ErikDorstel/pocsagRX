@@ -35,7 +35,6 @@ class Logging {
 
       if (needCR) { needCR=false; Serial.println();
         if (printTelnet!=nullptr) { printTelnet("\r\n"); } }
-      //Serial.print(tbuffer);
       Serial.write((uint8_t*)tbuffer,len);
       if (printTelnet!=nullptr) { printTelnet(tbuffer); }
 

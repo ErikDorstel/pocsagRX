@@ -93,11 +93,11 @@ void cliWorker() {
   if (Serial.available()) {
     char serialByte=Serial.read();
     if (serialByte==127) { Log.write(0,serialByte); cmdLine.remove(cmdLine.length()-1); }
-    else if (serialByte==13 || serialByte==10) { Log.print(0,"\r\n"); doParse(); cmdLine=""; }
+    else if (serialByte==10 || serialByte==13) { Log.print(0,"\r\n"); doParse(); cmdLine=""; }
     else { Log.write(0,serialByte); cmdLine+=String(serialByte); } }
 
-  if (telnetSession) { if (telnetSession.connected()) { if (telnetSession.available()) {
+  if (telnetSession.available()) {
     char telnetByte=telnetSession.read();
-    if (telnetByte==127) { Log.write(0,telnetByte); cmdLine.remove(cmdLine.length()-1); }
-    else if (telnetByte==13 || telnetByte==10) { Log.print(0,"\r\n"); doParse(); cmdLine=""; }
-    else { cmdLine+=String(telnetByte); } } } } }
+    if (telnetByte==127) { cmdLine.remove(cmdLine.length()-1); }
+    else if (telnetByte==13) { doParse(); cmdLine=""; }
+    else { cmdLine+=String(telnetByte); } } }
