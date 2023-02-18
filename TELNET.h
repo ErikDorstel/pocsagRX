@@ -18,15 +18,11 @@ void initTELNET() {
 void telnetWorker() {
   if ((!telnetSession) && telnetServer.hasClient()) {
     telnetSession=telnetServer.available();
-    sessionActive=1;
+    telnetSession.flush(); sessionActive=1;
     Log.print(0,"Telnet Session connected\r\n> "); }
 
-  if (sessionActive && (!telnetSession.connected())) {
-    sessionActive=0;
-    Log.print(0,"Telnet Session disconnected\r\n"); }
-
-  if (telnetSession && (!telnetSession.connected())) {
-    Log.print(0,"inactive Telnet Session terminated\r\n");
-    telnetSession.stop(); } }
+  if ((sessionActive || telnetSession) && (!telnetSession.connected())) {
+    telnetSession.flush(); sessionActive=0; telnetSession.stop();
+    Log.print(0,"Telnet Session disconnected\r\n"); } }
 
 #endif

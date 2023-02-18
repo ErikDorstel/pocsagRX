@@ -29,6 +29,7 @@ void help() {
   Log.print(0,"read flash\r\n");
   Log.print(0,"write flash\r\n");
   Log.print(0,"erase flash\r\n");
+  Log.print(0,"exit\r\n");
   Log.print(0,"help\r\n"); }
 
 void doParse() {
@@ -86,6 +87,7 @@ void doParse() {
   else if (cmdLine.startsWith("read flash")) { readFlash(); }
   else if (cmdLine.startsWith("write flash")) { writeFlash(); }
   else if (cmdLine.startsWith("erase flash")) { eraseFlash(); }
+  else if (cmdLine.startsWith("exit")) { modem.monitorRx=false; Log.debug=0; if (telnetSession.connected()) { telnetSession.stop(); } }
   else if (cmdLine.startsWith("help")) { help(); }
   Log.print(0,"> "); }
 
