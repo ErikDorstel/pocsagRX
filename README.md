@@ -9,6 +9,7 @@ SX1278 and ESP32 based POCSAG receiver
 * also works with HELTEC SX1278 based LoRa module
   * activate the HeltecLoRaV2 define statement in SX1278POCSAG.ino to use this module
 * serial console Command Line Interface for configuration and debugging
+* telnet server Command Line Interface for configuration and debugging
 * 3 levels of debugging
 * write/read configuration to/from flash
 * german BOS mode and DAU filter
