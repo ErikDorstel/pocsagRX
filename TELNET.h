@@ -17,12 +17,13 @@ void initTELNET() {
 
 void telnetWorker() {
   if ((!telnetSession) && telnetServer.hasClient()) {
-    telnetSession=telnetServer.available();
+    telnetSession.flush(); telnetSession=telnetServer.available();
     telnetSession.flush(); sessionActive=1;
-    Log.print(0,"Telnet Session connected\r\n> "); }
+    Log.print(0,"Telnet Session from %s connected\r\n>",telnetSession.remoteIP().toString().c_str()); }
 
   if ((sessionActive || telnetSession) && (!telnetSession.connected())) {
-    telnetSession.flush(); sessionActive=0; telnetSession.stop();
+    telnetSession.flush(); telnetSession.stop();
+    telnetSession.flush(); sessionActive=0;
     Log.print(0,"Telnet Session disconnected\r\n"); } }
 
 #endif

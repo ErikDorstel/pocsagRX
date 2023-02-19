@@ -1,6 +1,6 @@
 #include "Flash.h"
 
-String cmdLine;
+String cmdLine="";
 
 void help() {
   Log.print(0,"debug [0-3]\r\n");
@@ -100,6 +100,7 @@ void cliWorker() {
 
   if (telnetSession.available()) {
     char telnetByte=telnetSession.read();
-    if (telnetByte==127) { cmdLine.remove(cmdLine.length()-1); }
-    else if (telnetByte==13) { doParse(); cmdLine=""; }
-    else { cmdLine+=String(telnetByte); } } }
+    if (telnetByte==127) { Serial.write(telnetByte); cmdLine.remove(cmdLine.length()-1); }
+    else if (telnetByte==10) {}
+    else if (telnetByte==13) { Serial.println(); doParse(); cmdLine=""; }
+    else { Serial.write(telnetByte); cmdLine+=String(telnetByte); } } }
