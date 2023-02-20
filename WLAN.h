@@ -19,26 +19,28 @@ uint32_t httpRetried;
 uint32_t httpFailed;
 uint32_t timerWLAN;
 bool hasIP=false;
+int waitConnect=0;
 
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
   Log.print(0,"WLAN AP: %s with %i dBm connected\r\n",WiFi.SSID(),WiFi.RSSI());
-  timerWLAN=millis()+10000; upEvents++; hasIP=true; }
+  upEvents++; hasIP=true; }
 
-void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) { WiFi.disconnect();
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
   Log.print(0,"WLAN AP: disconnected\r\n");
-  timerWLAN=millis()+10000; downEvents++; hasIP=false; }
+  downEvents++; hasIP=false; }
 
 void initWLAN() {
   WiFi.mode(WIFI_STA);
   WiFi.onEvent(WiFiStationConnected,ARDUINO_EVENT_WIFI_STA_GOT_IP);
   WiFi.onEvent(WiFiStationDisconnected,ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
   WiFi.setHostname("pocsagGateway");
-  client.setInsecure(); https.setReuse(true); timerWLAN=millis()+10000; }
+  WiFi.setAutoConnect(false); WiFi.setAutoReconnect(false);
+  client.setInsecure(); https.setReuse(true); timerWLAN=millis()+2000; }
 
 void connectWLAN() {
-  WiFi.disconnect(); timerWLAN=millis()+20000;
+  WiFi.disconnect();
   if (wlanSSID!="" && wlanSecret!="") {
-    Log.print(0,"WLAN AP: try connect\r\n");
+    waitConnect=10; Log.print(0,"WLAN AP: try connect\r\n");
     WiFi.begin(wlanSSID.c_str(),wlanSecret.c_str()); } }
 
 void postHTTPS(String postData) {
@@ -67,7 +69,10 @@ String urlencode(String value) {
   return result; }
 
 void wlanWorker() {
-  if (millis()>=timerWLAN) { timerWLAN=millis()+10000;
-    if ((hasIP==false || WiFi.status()!=WL_CONNECTED) && wlanSSID!="" && wlanSecret!="") { connectWLAN(); } } }
+  if (millis()>=timerWLAN) { timerWLAN=millis()+2000; WiFi.RSSI();
+      if (!hasIP) {
+        if (waitConnect>0) { waitConnect--; }
+        if (wlanSSID!="" && wlanSecret!="" && waitConnect==0) { connectWLAN(); } }
+      else { waitConnect=0; } } }
 
 #endif
