@@ -89,18 +89,18 @@ void doParse() {
   else if (cmdLine.startsWith("erase flash")) { eraseFlash(); }
   else if (cmdLine.startsWith("exit")) { modem.monitorRx=false; Log.debug=0; if (telnetSession.connected()) { telnetSession.stop(); } }
   else if (cmdLine.startsWith("help")) { help(); }
-  Log.print(0,"> "); }
+  Log.print(0,"> "); Log.needCR=true; }
 
 void cliWorker() {
   if (Serial.available()) {
     char serialByte=Serial.read();
     if (serialByte==127) { Log.write(0,serialByte); cmdLine.remove(cmdLine.length()-1); }
-    else if (serialByte==10 || serialByte==13) { Log.print(0,"\r\n"); doParse(); cmdLine=""; }
+    else if (serialByte==10 || serialByte==13) { Log.needCR=false; Log.print(0,"\r\n"); doParse(); cmdLine=""; }
     else { Log.write(0,serialByte); cmdLine+=String(serialByte); } }
 
   if (telnetSession.available()) {
     char telnetByte=telnetSession.read();
     if (telnetByte==127) { Serial.write(telnetByte); cmdLine.remove(cmdLine.length()-1); }
     else if (telnetByte==10) {}
-    else if (telnetByte==13) { Serial.println(); doParse(); cmdLine=""; }
+    else if (telnetByte==13) { Log.needCR=false; Serial.println(); doParse(); cmdLine=""; }
     else { Serial.write(telnetByte); cmdLine+=String(telnetByte); } } }

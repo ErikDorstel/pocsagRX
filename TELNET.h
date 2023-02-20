@@ -19,7 +19,7 @@ void telnetWorker() {
   if ((!telnetSession) && telnetServer.hasClient()) {
     telnetSession.flush(); telnetSession=telnetServer.available();
     telnetSession.flush(); sessionActive=1;
-    Log.print(0,"Telnet Session from %s connected\r\n>",telnetSession.remoteIP().toString().c_str()); }
+    Log.print(0,"Telnet Session from %s connected\r\n>",telnetSession.remoteIP().toString().c_str()); Log.needCR=true; }
 
   if ((sessionActive || telnetSession) && (!telnetSession.connected())) {
     telnetSession.flush(); telnetSession.stop();
