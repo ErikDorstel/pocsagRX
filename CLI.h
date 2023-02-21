@@ -52,6 +52,10 @@ void doParse() {
     Log.print(0,"HTTP Status: %i",httpStatus); if (httpStatus==200) { Log.print(0," OK"); }
     Log.print(0,"   Retried: %i",httpRetried);
     Log.print(0,"   Failed: %i\r\n",httpFailed);
+    Log.print(0,"Telnet Session: %i",sessionActive);
+    if (sessionActive) { Log.print(0,"   IP: %s",telnetSession.remoteIP().toString().c_str()); }
+    Log.print(0,"   Monitor: %i",modem.monitorRx);
+    Log.print(0,"   Debug: %i\r\n",Log.debug);
     Log.print(0,"Uptime: %i days %s hours\r\n",modem.upTime/86400,String((double)(modem.upTime%86400)/3600.0,2).c_str()); }
   else if (cmdLine.startsWith("clear stat")) { modem.messageCount=0; modem.errorCount.corrected=0; modem.errorCount.uncorrected=0; upEvents=0; downEvents=0; httpRetried=0; httpFailed=0; Log.print(0,"Statistics cleared\r\n"); }
   else if (cmdLine.startsWith("get conf")) {
