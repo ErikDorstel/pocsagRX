@@ -84,7 +84,7 @@ void doParse() {
   else if (cmdLine.startsWith("set secret")) { if (value=="secret") { wlanSecret=""; } else { wlanSecret=value; } if (wlanSecret!="") { Log.print(0,"WLAN Secret: xxxx\r\n"); } else { Log.print(0,"WLAN Secret:\r\n"); } }
   else if (cmdLine.startsWith("set gw")) { if (value=="gw" || value=="gwurl") { gwURL=""; } else { gwURL=value; } Log.print(0,"Gateway URL: %s\r\n",String(gwURL).c_str()); }
   else if (cmdLine.startsWith("connect wlan")) { connectWLAN(); }
-  else if (cmdLine.startsWith("clear wlan")) { wlanSSID=""; httpStatus=0; connectWLAN(); }
+  else if (cmdLine.startsWith("clear wlan")) { wlanSSID=""; connectWLAN(); }
   else if (cmdLine.startsWith("restart rx")) { modem.restartRx(true); Log.print(0,"Rx and PLL restarted\r\n"); }
   else if (cmdLine.startsWith("restart cpu")) { ESP.restart(); }
   else if (cmdLine.startsWith("get flash")) { getFlash(); }
