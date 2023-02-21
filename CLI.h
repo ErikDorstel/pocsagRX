@@ -45,14 +45,14 @@ void doParse() {
     Log.print(0,"   uncorrected: %i",modem.errorCount.uncorrected);
     Log.print(0,"   Bytes queued: %i/%i\r\n",uxQueueMessagesWaitingFromISR(queueDIO1),queueSizeDIO1);
     Log.print(0,"WLAN Status: "); if (WiFi.status()==3) { Log.print(0,"Up (%i)",WiFi.status()); } else { Log.print(0,"Down (%i)",WiFi.status()); }
-    Log.print(0,"   IP: %s",WiFi.localIP().toString().c_str());
+    if (hasIP) { Log.print(0,"   IP: %s",WiFi.localIP().toString().c_str()); }
     Log.print(0,"   RSSI: %i dBm",WiFi.RSSI());
     Log.print(0,"   Events Up: %i",upEvents);
     Log.print(0,"   Down: %i\r\n",downEvents);
     Log.print(0,"HTTP Status: %i",httpStatus); if (httpStatus==200) { Log.print(0," OK"); }
     Log.print(0,"   Retried: %i",httpRetried);
     Log.print(0,"   Failed: %i\r\n",httpFailed);
-    Log.print(0,"Telnet Session: %i",sessionActive);
+    Log.print(0,"TELNET Session: %i",sessionActive);
     if (sessionActive) { Log.print(0,"   IP: %s",telnetSession.remoteIP().toString().c_str()); }
     Log.print(0,"   Monitor: %i",modem.monitorRx);
     Log.print(0,"   Debug: %i\r\n",Log.debug);
