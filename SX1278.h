@@ -90,7 +90,8 @@ class SX1278FSK {
     String esp32ID;
 
     SX1278FSK(bool _monitorRx=false, uint8_t _debug=0) {
-      monitorRx=_monitorRx; Log.debug=_debug; }
+      monitorRx=_monitorRx; Log.debug=_debug;
+      SPI.begin(SCK, MISO, MOSI, CS); }
 
     uint8_t readSPI(uint8_t addr) {
       digitalWrite(CS, LOW);
