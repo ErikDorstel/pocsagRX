@@ -14,6 +14,8 @@ void writeTelnet(const char value) { if (telnetSession.connected() && isAuth) { 
 
 void printTelnet(const char* value) { if (telnetSession.connected() && isAuth) { telnetSession.print(value); } }
 
+void iacEcho(bool value) { if (value) { telnetSession.print("\xff\xfc\x01"); } else { telnetSession.print("\xff\xfb\x01"); } }
+
 void initTELNET() {
   telnetServer.begin();
   Log.writeTelnet=writeTelnet;
@@ -24,7 +26,7 @@ void telnetWorker() {
     telnetSession=telnetServer.available();
     sessionActive=1; isAuth=false; passBuffer="";
     Log.print(0,"TELNET Session from %s connected\r\n",telnetSession.remoteIP().toString().c_str());
-    telnetSession.print("Password: "); }
+    iacEcho(false); telnetSession.print("Password: "); }
 
   if ((sessionActive || telnetSession) && (!telnetSession.connected())) {
     telnetSession.stop();
@@ -40,8 +42,9 @@ void telnetWorker() {
     else if (telnetByte==127) { telnetSession.write(telnetByte); passBuffer.remove(passBuffer.length()-1); }
     else if (telnetByte==10) {}
     else if (telnetByte==13) {
-      if (passBuffer==telnetPass) { isAuth=true; Log.print(0,"TELNET Authentication from %s passed\r\n> ",telnetSession.remoteIP().toString().c_str()); passBuffer=""; Log.needCR=true; }
-      else { if (passBuffer!="") { Log.print(0,"TELNET Authentication from %s failed\r\n",telnetSession.remoteIP().toString().c_str()); } passBuffer=""; telnetSession.print("Password: "); } }
-    else { passBuffer+=String(telnetByte); } } }
+      if (passBuffer==telnetPass) {
+        iacEcho(true); isAuth=true; telnetSession.print("\r\n"); Log.print(0,"TELNET Authentication from %s passed\r\n> ",telnetSession.remoteIP().toString().c_str()); passBuffer=""; Log.needCR=true; }
+      else { if (passBuffer!="") { Log.print(0,"TELNET Authentication from %s failed\r\n",telnetSession.remoteIP().toString().c_str()); } passBuffer=""; telnetSession.print("\r\nPassword: "); } }
+    else { telnetSession.write("*"); passBuffer+=String(telnetByte); } } }
 
 #endif

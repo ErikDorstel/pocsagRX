@@ -108,7 +108,11 @@ void cliWorker() {
 
   if (telnetSession.available() && isAuth) {
     char telnetByte=telnetSession.read();
-    if (telnetByte==127) { Serial.write(telnetByte); cmdLine.remove(cmdLine.length()-1); }
+    if (isIAC==3) { isIAC=0; }
+    if (telnetByte==255 && (!isIAC)) { isIAC++; }
+    else if (telnetByte==255 && isIAC) { isIAC=0; }
+    else if (isIAC) { isIAC++; }
+    else if (telnetByte==127) { Serial.write(telnetByte); cmdLine.remove(cmdLine.length()-1); }
     else if (telnetByte==10) {}
     else if (telnetByte==13) { Log.needCR=false; Serial.println(); doParse(); cmdLine=""; }
     else { Serial.write(telnetByte); cmdLine+=String(telnetByte); } } }
