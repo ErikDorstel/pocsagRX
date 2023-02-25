@@ -54,6 +54,7 @@ void doParse() {
     Log.print(0,"   Failed: %i\r\n",httpFailed);
     Log.print(0,"TELNET Session: %i",sessionActive);
     if (sessionActive) { Log.print(0,"   IP: %s",telnetSession.remoteIP().toString().c_str()); }
+    if (sessionActive) { Log.print(0,"   Auth: %i",isAuth); }
     Log.print(0,"   Monitor: %i",modem.monitorRx);
     Log.print(0,"   Debug: %i\r\n",Log.debug);
     Log.print(0,"Uptime: %i days %s hours\r\n",modem.upTime/86400,String((double)(modem.upTime%86400)/3600.0,2).c_str()); }
@@ -102,7 +103,7 @@ void cliWorker() {
     else if (serialByte==10 || serialByte==13) { Log.needCR=false; Log.print(0,"\r\n"); doParse(); cmdLine=""; }
     else { Log.write(0,serialByte); cmdLine+=String(serialByte); } }
 
-  if (telnetSession.available()) {
+  if (telnetSession.available() && isAuth) {
     char telnetByte=telnetSession.read();
     if (telnetByte==127) { Serial.write(telnetByte); cmdLine.remove(cmdLine.length()-1); }
     else if (telnetByte==10) {}
