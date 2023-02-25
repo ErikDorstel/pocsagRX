@@ -40,8 +40,8 @@ void telnetWorker() {
     else if (telnetByte==127) { telnetSession.write(telnetByte); passBuffer.remove(passBuffer.length()-1); }
     else if (telnetByte==10) {}
     else if (telnetByte==13) {
-      if (passBuffer==telnetPass) { isAuth=true; Log.print(0,"TELNET authentication from %s passed\r\n> ",telnetSession.remoteIP().toString().c_str()); passBuffer=""; Log.needCR=true; }
-      else { if (passBuffer!="") { Log.print(0,"TELNET authentication from %s failed\r\n",telnetSession.remoteIP().toString().c_str()); } passBuffer=""; telnetSession.print("Password: "); } }
+      if (passBuffer==telnetPass) { isAuth=true; Log.print(0,"TELNET Authentication from %s passed\r\n> ",telnetSession.remoteIP().toString().c_str()); passBuffer=""; Log.needCR=true; }
+      else { if (passBuffer!="") { Log.print(0,"TELNET Authentication from %s failed\r\n",telnetSession.remoteIP().toString().c_str()); } passBuffer=""; telnetSession.print("Password: "); } }
     else { passBuffer+=String(telnetByte); } } }
 
 #endif

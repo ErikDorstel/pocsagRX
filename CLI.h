@@ -21,6 +21,7 @@ void help() {
   Log.print(0,"set ssid [SSID]\r\n");
   Log.print(0,"set secret [Secret]\r\n");
   Log.print(0,"set gwurl [https://foo.de/foo]\r\n");
+  Log.print(0,"set password [Password]\r\n");
   Log.print(0,"connect wlan\r\n");
   Log.print(0,"clear wlan\r\n");
   Log.print(0,"restart rx\r\n");
@@ -70,7 +71,8 @@ void doParse() {
     Log.print(0,"DAU Filter: %s\r\n",String(modem.daufilter).c_str());
     Log.print(0,"WLAN SSID: %s\r\n",String(wlanSSID).c_str());
     if (wlanSecret!="") { Log.print(0,"WLAN Secret: xxxx\r\n"); } else { Log.print(0,"WLAN Secret:\r\n"); }
-    Log.print(0,"Gateway URL: %s\r\n",String(gwURL).c_str()); }
+    Log.print(0,"Gateway URL: %s\r\n",String(gwURL).c_str());
+    Log.print(0,"TELNET Password: xxxx\r\n"); }
   else if (cmdLine.startsWith("get reg")) { modem.regDump(); }
   else if (cmdLine.startsWith("set freq")) { modem.stopSequencer(); modem.setFrequency(value.toDouble()); modem.startSequencer(); modem.restartRx(true); }
   else if (cmdLine.startsWith("set offset")) { if (value!="auto") { modem.rxOffset=value.toDouble(); }
@@ -84,10 +86,11 @@ void doParse() {
   else if (cmdLine.startsWith("set ssid")) { if (value=="ssid") { wlanSSID=""; } else { wlanSSID=value; } Log.print(0,"WLAN SSID: %s\r\n",String(wlanSSID).c_str()); }
   else if (cmdLine.startsWith("set secret")) { if (value=="secret") { wlanSecret=""; } else { wlanSecret=value; } if (wlanSecret!="") { Log.print(0,"WLAN Secret: xxxx\r\n"); } else { Log.print(0,"WLAN Secret:\r\n"); } }
   else if (cmdLine.startsWith("set gw")) { if (value=="gw" || value=="gwurl") { gwURL=""; } else { gwURL=value; } Log.print(0,"Gateway URL: %s\r\n",String(gwURL).c_str()); }
+  else if (cmdLine.startsWith("set pass")) { if (value=="pass" || value=="password") { telnetPass="pocsag"; } else { telnetPass=value; } Log.print(0,"TELNET Password: xxxx\r\n"); }
   else if (cmdLine.startsWith("connect wlan")) { connectWLAN(); }
   else if (cmdLine.startsWith("clear wlan")) { wlanSSID=""; connectWLAN(); }
   else if (cmdLine.startsWith("restart rx")) { modem.restartRx(true); Log.print(0,"Rx and PLL restarted\r\n"); }
-  else if (cmdLine.startsWith("restart cpu")) { ESP.restart(); }
+  else if (cmdLine.startsWith("restart cpu")) { if (telnetSession.connected()) { telnetSession.stop(); } ESP.restart(); }
   else if (cmdLine.startsWith("get flash")) { getFlash(); }
   else if (cmdLine.startsWith("read flash")) { readFlash(); }
   else if (cmdLine.startsWith("write flash")) { writeFlash(); }

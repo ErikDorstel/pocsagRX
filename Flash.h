@@ -16,6 +16,7 @@ void getFlash() {
   Log.print(0,"WLAN SSID: %s\r\n",flash.getString("wlanSSID",""));
   if (flash.getString("wlanSecret","")!="") { Log.print(0,"WLAN Secret: xxxx\r\n"); } else { Log.print(0,"WLAN Secret:\r\n"); }
   Log.print(0,"Gateway URL: %s\r\n",String(flash.getString("gwURL","")).c_str());
+  Log.print(0,"TELNET Password: xxxx\r\n");
   flash.end(); }
 
 void readFlash() {
@@ -33,6 +34,7 @@ void readFlash() {
   wlanSSID=flash.getString("wlanSSID","");
   wlanSecret=flash.getString("wlanSecret","");
   gwURL=flash.getString("gwURL","");
+  telnetPass=flash.getString("telnetPass","pocsag");
   flash.end();
   Log.print(0,"Flash: read\r\n");
   connectWLAN(); }
@@ -50,6 +52,7 @@ void writeFlash() {
   flash.putString("wlanSSID",wlanSSID);
   flash.putString("wlanSecret",wlanSecret);
   flash.putString("gwURL",gwURL);
+  flash.putString("telnetPass",telnetPass);
   flash.end();
   Log.print(0,"Flash: written\r\n"); }
 
