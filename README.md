@@ -29,9 +29,9 @@ SX1278 and ESP32 based POCSAG receiver
 * GPIO 27 - DIO2
 * GPIO 32 - DIO3 (for future development)
 #### Development Hardware
-![IMAGE ALT TEXT HERE](https://www.dorstel.de/github/SX1278POCSAG_a_v1.0.png)
+![IMAGE ALT TEXT HERE](documentation/SX1278POCSAG.png)
 #### Console Screenshot (DAPNET DB0HBO)
-![IMAGE ALT TEXT HERE](https://www.dorstel.de/github/SX1278POCSAG_b_v1.1.png)
+![IMAGE ALT TEXT HERE](documentation/console.png)
 #### Receiver Configuration
 * center frequency in MHz and Rx error offset frequency in kHz
   * the Rx error offset is the measured AFC value when Rx error offset is set to 0
