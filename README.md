@@ -1,4 +1,4 @@
-# SX1278POCSAG
+# pocsagRX
 SX1278 and ESP32 based POCSAG receiver
 #### Features
 * uses Semtech SX1278 as FSK receiver
