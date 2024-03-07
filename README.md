@@ -29,7 +29,7 @@ SX1278 and ESP32 based POCSAG receiver
 * GPIO 27 - DIO2
 * GPIO 32 - DIO3 (for future development)
 #### Development Hardware
-![IMAGE ALT TEXT HERE](documentation/SX1278POCSAG.png)
+![IMAGE ALT TEXT HERE](documentation/pocsagRX.png)
 #### Console Screenshot (DAPNET DB0HBO)
 ![IMAGE ALT TEXT HERE](documentation/console.png)
 #### Receiver Configuration

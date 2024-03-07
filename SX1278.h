@@ -417,7 +417,7 @@ class SX1278FSK {
                   number=0; numberPos=0; } } } } } } }
 
   private:
-    uint32_t timerRx;
+    uint64_t timerRx;
     bool isText;
     bool isROT1;
     bool isIdle;
