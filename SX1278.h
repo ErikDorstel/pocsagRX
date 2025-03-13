@@ -309,7 +309,7 @@ class SX1278FSK {
         postValue+="&function=" + String(function);
         postValue+="&dau=" + urlencode(dau);
         postValue+="&message=" + urlencode(message);
-        postHTTPS(postValue); }
+        postHTTPS(gwURL,postValue); }
       error.corrected=0; error.uncorrected=0; message=""; messageCount++; }
 
     void messageFiltered() {
@@ -351,6 +351,13 @@ class SX1278FSK {
             while (!available()) {} rxByte=read();
             batch[codeWord]<<=8-bitShift; batch[codeWord]|=rxByte>>bitShift;
             if (idx==63 && bitShift!=0) { searchSync(rxByte); } }
+
+          if (rawURL!="") {
+            String postValue="dme=" + esp32ID;
+            String rawBatch;
+            for (uint8_t idx=0;idx<=15;idx++) { rawBatch+=(char)(batch[idx]>>0); rawBatch+=(char)(batch[idx]>>8); rawBatch+=(char)(batch[idx]>>16); rawBatch+=(char)(batch[idx]>>24); }
+            postValue+="&raw=" + urlencode(rawBatch);
+            postHTTPS(rawURL,postValue); }
 
           for (uint8_t idx=0;idx<=15;idx++) {
             errors currentError=bch.decode(batch[idx]);

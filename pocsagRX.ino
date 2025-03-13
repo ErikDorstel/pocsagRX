@@ -1,4 +1,4 @@
-#define HeltecLoRaV2
+//#define HeltecLoRaV2
 
 #include "SX1278.h"
 SX1278FSK modem(false,0);

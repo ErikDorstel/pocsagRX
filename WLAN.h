@@ -11,6 +11,7 @@ HTTPClient https;
 String wlanSSID="";
 String wlanSecret="";
 String gwURL="";
+String rawURL="";
 uint32_t upEvents;
 uint32_t downEvents;
 int httpStatus;
@@ -43,9 +44,9 @@ void connectWLAN() {
     waitConnect=10; Log.print(0,"WLAN AP: try connect\r\n");
     WiFi.begin(wlanSSID.c_str(),wlanSecret.c_str()); } }
 
-void postHTTPS(String postData) {
+void postHTTPS(String url, String postData) {
   uint8_t attempt=0; while (attempt<=httpMaxRetries) {
-    if (hasIP) { client.connect(gwURL.c_str(),443); https.begin(client,gwURL);
+    if (hasIP) { client.connect(url.c_str(),443); https.begin(client,url);
       https.addHeader("Content-Type","application/x-www-form-urlencoded");
       httpStatus=https.POST(postData);
       Log.print(2,"    HTTP POST: %s\r\n",postData.c_str());
