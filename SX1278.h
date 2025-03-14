@@ -300,6 +300,13 @@ class SX1278FSK {
 
     void messageReceived() {
       Log.print(1,"    BCH Errors: %i/%i\r\n",error.corrected,error.uncorrected);
+      if(rawURL !="")
+      {
+            String postValue="dme=" + esp32ID;
+            postValue+="&raw=" + urlencode(rawBatch);
+            postHTTPS(rawURL,postValue); 
+            rawBatch="";
+      }
       if (gwURL!="") {
         if (message=="") { message="no message"; }
         String postValue="dme=" + esp32ID;
@@ -352,12 +359,7 @@ class SX1278FSK {
             batch[codeWord]<<=8-bitShift; batch[codeWord]|=rxByte>>bitShift;
             if (idx==63 && bitShift!=0) { searchSync(rxByte); } }
 
-          if (rawURL!="") {
-            String postValue="dme=" + esp32ID;
-            String rawBatch;
-            for (uint8_t idx=0;idx<=15;idx++) { rawBatch+=(char)(batch[idx]>>0); rawBatch+=(char)(batch[idx]>>8); rawBatch+=(char)(batch[idx]>>16); rawBatch+=(char)(batch[idx]>>24); }
-            postValue+="&raw=" + urlencode(rawBatch);
-            postHTTPS(rawURL,postValue); }
+          if (rawURL!="") { for (uint8_t idx=0;idx<=15;idx++) { rawBatch+=(char)(batch[idx]>>0); rawBatch+=(char)(batch[idx]>>8); rawBatch+=(char)(batch[idx]>>16); rawBatch+=(char)(batch[idx]>>24); } }
 
           for (uint8_t idx=0;idx<=15;idx++) {
             errors currentError=bch.decode(batch[idx]);
@@ -436,6 +438,7 @@ class SX1278FSK {
     bool isMessageRun;
     String dau="";
     String message="";
+    String rawBatch="";
     bool parity;
     double rssi;
     uint8_t text=0;
